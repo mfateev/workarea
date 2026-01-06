@@ -9,7 +9,9 @@
       "Bash(git reset:*)",
       "Bash(gh pr checks:*)",
       "Bash(gh run view:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh repo view:*)"
     ]
   }
 }
