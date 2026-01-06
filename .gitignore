@@ -5,8 +5,9 @@
 # Exclude all directories within tasks/*/
 tasks/*/*
 
-# But include all markdown files in task directories
+# But include task metadata and documentation
 !tasks/*/*.md
+!tasks/*/*.json
 
 # Temporary files
 *.swp

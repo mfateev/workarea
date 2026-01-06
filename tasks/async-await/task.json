@@ -1,0 +1,18 @@
+{
+  "task_name": "async-await",
+  "created": "2026-01-06T14:47:00Z",
+  "pr_url": "https://github.com/temporalio/sdk-java/pull/2751",
+  "pr_number": 2751,
+  "repositories": [
+    {
+      "name": "sdk-java",
+      "upstream_url": "https://github.com/temporalio/sdk-java.git",
+      "fork_url": "https://github.com/mfateev/temporal-java-sdk.git",
+      "branch": "async-await",
+      "fork_owner": "mfateev",
+      "tracking_remote": "mfateev",
+      "tracking_branch": "async-await"
+    }
+  ],
+  "description": "Add Async.await() for non-blocking condition waiting"
+}

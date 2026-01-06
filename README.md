@@ -19,6 +19,7 @@ workarea/
 │       └── new-task.md    # /new-task skill definition
 ├── tasks/                  # Task workspaces (not in git)
 │   └── <task-name>/
+│       ├── task.json       # Task configuration (tracked)
 │       ├── TASK_STATUS.md  # Task documentation (tracked)
 │       └── <repo>/         # Git worktree (not tracked)
 ├── repos/                  # Repository storage (not in git)
@@ -55,6 +56,33 @@ Set up a complete task workspace with one command:
 # For new tasks
 /new-task Implement user authentication
 ```
+
+### 🔄 Task Restoration
+
+Resume any task on any machine with full context:
+
+```bash
+# Clone workarea repository
+git clone https://github.com/mfateev/workarea.git
+cd workarea
+
+# List available tasks
+ls tasks/
+
+# Restore complete task workspace
+./bin/resume-task.sh async-await
+
+# Start working immediately
+cd tasks/async-await/sdk-java
+```
+
+The `task.json` file in each task directory contains:
+- Repository URLs (upstream and your fork)
+- Branch names
+- Remote tracking configuration
+- PR information
+
+**This enables perfect task restoration from any machine!**
 
 ### 🔄 Git Worktree Management
 

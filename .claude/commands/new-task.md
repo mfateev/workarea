@@ -74,17 +74,26 @@ When this command is invoked:
 
 ### Common Steps (both modes)
 
-5. **Create task status document**
+5. **Verify task.json was created**
+   - The setup script automatically generates `task.json` with:
+     - Repository URLs (upstream and fork)
+     - Branch names
+     - Remote tracking information
+   - This file enables task restoration on any machine
+   - File is automatically tracked in git
+
+6. **Create task status document**
    - Create `TASK_STATUS.md` in the task directory
    - Include: task overview, PR/issue links, current status, CI status, next steps
    - See CLAUDE.md section 4 for full template
 
-6. **Confirm setup**
+7. **Confirm setup**
+   - Show that `task.json` was created
    - List the created worktrees
    - Show the task directory path
    - Provide next steps (cd into directory)
 
-7. **Navigate to task workspace**
+8. **Navigate to task workspace**
    - Change working directory to the new task folder
    - Ready to start working
 

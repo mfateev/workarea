@@ -120,6 +120,9 @@ echo -e "${GREEN}Setting up workspace structure...${NC}"
 mkdir -p "$REPOS_DIR"
 mkdir -p "$TASKS_DIR"
 
+# Initialize array to store repository configurations
+REPO_CONFIGS=()
+
 # Create task directory
 TASK_DIR="${TASKS_DIR}/${TASK_NAME}"
 if [ -d "$TASK_DIR" ]; then
@@ -214,7 +217,63 @@ for repo_input in "${REPO_URLS[@]}"; do
 
         echo -e "${GREEN}  ✓ Worktree created${NC}"
     fi
+
+    # Store repository info for config generation
+    REPO_CONFIGS+=("$(cat <<EOF
+{
+  "name": "$REPO_NAME",
+  "upstream_url": "$repo_url",
+  "fork_url": $([ -n "$fork_owner" ] && echo "\"https://github.com/${fork_owner}/${REPO_NAME}.git\"" || echo "null"),
+  "branch": "$TARGET_BRANCH",
+  "fork_owner": $([ -n "$fork_owner" ] && echo "\"$fork_owner\"" || echo "null"),
+  "tracking_remote": $([ -n "$fork_owner" ] && echo "\"$fork_owner\"" || echo "\"origin\""),
+  "tracking_branch": "$TARGET_BRANCH"
+}
+EOF
+)")
 done
+
+# Generate task.json configuration file
+echo ""
+echo -e "${GREEN}Generating task configuration...${NC}"
+
+CONFIG_FILE="${TASK_DIR}/task.json"
+
+# Determine PR info if available
+if [ -n "${pr_branch}" ]; then
+    # Extract PR number from first repo URL if it's a PR
+    PR_INFO=$(echo "${REPO_URLS[0]}" | grep -o 'pull/[0-9]*' || echo "")
+    PR_NUMBER=$(echo "$PR_INFO" | grep -o '[0-9]*' || echo "")
+
+    if [ -n "$PR_NUMBER" ]; then
+        PR_URL="${REPO_URLS[0]}"
+        PR_DESC=$(gh pr view "$PR_NUMBER" --repo "${repo_url%.git}" --json title --jq '.title' 2>/dev/null || echo "")
+    fi
+fi
+
+# Build repositories JSON array
+REPOS_JSON="["
+for i in "${!REPO_CONFIGS[@]}"; do
+    if [ $i -gt 0 ]; then
+        REPOS_JSON+=","
+    fi
+    REPOS_JSON+="${REPO_CONFIGS[$i]}"
+done
+REPOS_JSON+="]"
+
+# Generate config file
+cat > "$CONFIG_FILE" <<EOF
+{
+  "task_name": "$TASK_NAME",
+  "created": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "pr_url": $([ -n "$PR_URL" ] && echo "\"$PR_URL\"" || echo "null"),
+  "pr_number": $([ -n "$PR_NUMBER" ] && echo "$PR_NUMBER" || echo "null"),
+  "repositories": $REPOS_JSON,
+  "description": $([ -n "$PR_DESC" ] && echo "\"$PR_DESC\"" || echo "\"$TASK_NAME\"")
+}
+EOF
+
+echo -e "${GREEN}  ✓ Created: ${CONFIG_FILE}${NC}"
 
 echo ""
 echo -e "${GREEN}========================================${NC}"
