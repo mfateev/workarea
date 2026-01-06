@@ -70,6 +70,8 @@ cd workarea
 ls tasks/
 
 # Restore complete task workspace
+/resume-task async-await
+# Or use the script directly:
 ./bin/resume-task.sh async-await
 
 # Start working immediately
@@ -109,6 +111,8 @@ Pass GitHub PR URLs directly:
 
 ## Quick Start
 
+### Starting a New Task
+
 1. **Clone this repository:**
    ```bash
    git clone https://github.com/mfateev/workarea.git
@@ -117,11 +121,11 @@ Pass GitHub PR URLs directly:
 
 2. **Start a new task:**
    ```bash
-   # With PR URL
-   ./bin/setup-task-workspace.sh task-name https://github.com/org/repo/pull/123
-
-   # Or with Claude Code
+   # With Claude Code (recommended)
    /new-task https://github.com/org/repo/pull/123
+
+   # Or with script directly
+   ./bin/setup-task-workspace.sh task-name https://github.com/org/repo/pull/123
    ```
 
 3. **Work on the task:**
@@ -139,6 +143,35 @@ Pass GitHub PR URLs directly:
    git add tasks/task-name/TASK_STATUS.md
    git commit -m "Update task status"
    git push
+   ```
+
+### Resuming an Existing Task
+
+1. **Clone workarea (on new machine):**
+   ```bash
+   git clone https://github.com/mfateev/workarea.git
+   cd workarea
+   ```
+
+2. **See available tasks:**
+   ```bash
+   ls tasks/
+   ```
+
+3. **Resume a task:**
+   ```bash
+   # With Claude Code (recommended)
+   /resume-task async-await
+
+   # Or with script directly
+   ./bin/resume-task.sh async-await
+   ```
+
+4. **Continue working:**
+   ```bash
+   cd tasks/async-await/repo
+   git pull  # Get latest changes from your fork
+   # Continue working...
    ```
 
 ## Documentation

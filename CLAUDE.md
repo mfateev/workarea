@@ -25,6 +25,20 @@ workarea/
 - **Organization**: All task-related changes are grouped together
 - **Parallel Work**: Work on multiple features simultaneously without conflicts
 
+## Available Commands
+
+This workspace includes custom Claude Code commands:
+
+- **`/new-task`** - Set up a new task workspace
+  - Accepts task descriptions or PR URLs
+  - Automatically configures repositories and worktrees
+  - Generates task.json and TASK_STATUS.md
+
+- **`/resume-task`** - Restore an existing task workspace
+  - Reads task.json configuration
+  - Clones repos and creates worktrees
+  - Perfect for continuing work on another machine
+
 ## Workflow
 
 ### 1. Using the `/new-task` Command (Recommended)
@@ -33,13 +47,16 @@ The easiest way to set up a new task workspace:
 
 ```
 /new-task Implement user authentication for frontend and backend
+# Or with PR URL:
+/new-task https://github.com/org/repo/pull/123
 ```
 
 Claude will:
-1. Analyze the task description
+1. Analyze the task description or fetch PR details
 2. Identify which repositories are needed
 3. Run the setup script automatically
 4. Create worktrees in `tasks/<task-name>/`
+5. Generate task.json configuration
 
 ### 2. Manual Setup with Script
 
@@ -103,6 +120,8 @@ cat tasks/async-await/TASK_STATUS.md
 cat tasks/async-await/task.json
 
 # 4. Restore the task workspace (sets up repos and worktrees)
+/resume-task async-await
+# Or use the script directly:
 ./bin/resume-task.sh async-await
 
 # 5. Start working
