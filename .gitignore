@@ -1,0 +1,24 @@
+# Repository storage - exclude all cloned repositories
+/repos/
+
+# Task worktrees - exclude git worktrees but keep documentation
+# Exclude all directories within tasks/*/
+tasks/*/*
+
+# But include all markdown files in task directories
+!tasks/*/*.md
+
+# Temporary files
+*.swp
+*.swo
+*~
+.DS_Store
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Build artifacts
+*.log
+.tmp/
