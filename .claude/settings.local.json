@@ -11,7 +11,9 @@
       "Bash(gh run view:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(gh repo view:*)"
+      "Bash(gh repo view:*)",
+      "Bash(chmod:*)",
+      "Bash(./bin/list-tasks.sh:*)"
     ]
   }
 }

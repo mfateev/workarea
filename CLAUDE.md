@@ -29,6 +29,12 @@ workarea/
 
 This workspace includes custom Claude Code commands:
 
+- **`/tasks`** - List all available tasks ⭐ **Run this first!**
+  - Shows all active tasks with status
+  - Displays CI failures, progress, completion
+  - Quick selection to resume any task
+  - **Recommended:** Start every session with this command
+
 - **`/new-task`** - Set up a new task workspace
   - Accepts task descriptions or PR URLs
   - Automatically configures repositories and worktrees

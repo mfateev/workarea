@@ -111,6 +111,21 @@ Pass GitHub PR URLs directly:
 
 ## Quick Start
 
+### 📋 List Your Tasks (Recommended First Step)
+
+**Start every session by seeing what's available:**
+
+```bash
+cd workarea
+/tasks
+```
+
+This shows all your active tasks with:
+- Status indicators (🔴 failing CI, 🟡 in progress, 🟢 passing)
+- Last updated time
+- PR links and descriptions
+- Quick selection to resume any task
+
 ### Starting a New Task
 
 1. **Clone this repository:**
