@@ -6,14 +6,14 @@ This workspace helps you manage multiple development tasks across repositories u
 
 ## Quick Start Commands
 
-- **`/tasks`** - See all available tasks and choose which to work on
+- **`/workarea-tasks`** - See all available tasks and choose which to work on
 - **`/new-task`** - Start a new task from a PR or description
 - **`/resume-task`** - Restore a specific task by name
 
 ## Recommended: Start Every Session
 
 ```
-/tasks
+/workarea-tasks
 ```
 
 This shows you:
@@ -24,7 +24,7 @@ This shows you:
 
 ## Available Tasks
 
-Run `/tasks` to see your current work queue with details like:
+Run `/workarea-tasks` to see your current work queue with details like:
 ```
 1. 🔴 async-await       [PR #2751] Failing CI - needs fix
 2. 🟡 feature-auth      [WIP] In progress
@@ -36,7 +36,7 @@ Run `/tasks` to see your current work queue with details like:
 ### Starting Your Day
 ```bash
 cd /Users/maxim/ai/workarea
-/tasks                    # Choose what to work on
+/workarea-tasks                    # Choose what to work on
 # Select a task from the list
 cd tasks/<task>/repo
 git pull                  # Get latest from your fork
@@ -65,7 +65,7 @@ git push
 # On new machine
 git clone https://github.com/mfateev/workarea.git
 cd workarea
-/tasks                    # Same interface, choose task
+/workarea-tasks                    # Same interface, choose task
 ```
 
 ## Directory Structure
@@ -94,4 +94,4 @@ workarea/
 
 ---
 
-**Ready to start?** Run `/tasks` to see your work queue!
+**Ready to start?** Run `/workarea-tasks` to see your work queue!

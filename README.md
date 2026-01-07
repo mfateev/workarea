@@ -117,7 +117,7 @@ Pass GitHub PR URLs directly:
 
 ```bash
 cd workarea
-/tasks
+/workarea-tasks
 ```
 
 This shows all your active tasks with:

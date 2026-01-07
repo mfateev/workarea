@@ -29,7 +29,7 @@ workarea/
 
 This workspace includes custom Claude Code commands:
 
-- **`/tasks`** - List all available tasks ⭐ **Run this first!**
+- **`/workarea-tasks`** - List all available tasks ⭐ **Run this first!**
   - Shows all active tasks with status
   - Displays CI failures, progress, completion
   - Quick selection to resume any task

@@ -1,11 +1,11 @@
-# tasks
+# workarea-tasks
 
 List all available tasks in the workarea with their status and details.
 
 ## Usage
 
 ```
-/tasks
+/workarea-tasks
 ```
 
 No arguments required - shows all tasks.
@@ -59,7 +59,7 @@ When this command is invoked:
 ## Example Interaction
 
 ```
-User: /tasks
+User: /workarea-tasks
 
 Claude: [Runs ./bin/list-tasks.sh]
 
@@ -147,7 +147,7 @@ Suggest which task to work on based on:
 ## No Tasks Found
 
 ```
-User: /tasks
+User: /workarea-tasks
 
 Claude: No tasks found in workarea.
 
@@ -162,11 +162,11 @@ Example:
 ## Integration with Startup
 
 **Recommended Setup:**
-Add to your shell profile or create a reminder to run `/tasks` when starting work:
+Add to your shell profile or create a reminder to run `/workarea-tasks` when starting work:
 
 ```bash
 # In ~/.zshrc or ~/.bashrc
-alias work="cd /Users/maxim/ai/workarea && echo 'Run /tasks to see available work'"
+alias work="cd /Users/maxim/ai/workarea && echo 'Run /workarea-tasks to see available work'"
 ```
 
 **Or create a startup message:**
@@ -202,29 +202,29 @@ No tasks found. Start with: /new-task
 
 ### Filtering
 ```
-/tasks --failing    # Show only tasks with failing CI
-/tasks --active     # Show only in-progress tasks
-/tasks --recent     # Show tasks modified in last 7 days
+/workarea-tasks --failing    # Show only tasks with failing CI
+/workarea-tasks --active     # Show only in-progress tasks
+/workarea-tasks --recent     # Show tasks modified in last 7 days
 ```
 
 ### Sorting
 ```
-/tasks --sort date       # Sort by last modified
-/tasks --sort name       # Sort alphabetically
-/tasks --sort status     # Sort by status (failing first)
+/workarea-tasks --sort date       # Sort by last modified
+/workarea-tasks --sort name       # Sort alphabetically
+/workarea-tasks --sort status     # Sort by status (failing first)
 ```
 
 ### Search
 ```
-/tasks auth             # Show tasks matching "auth"
-/tasks pr:2751          # Show task for PR #2751
+/workarea-tasks auth             # Show tasks matching "auth"
+/workarea-tasks pr:2751          # Show task for PR #2751
 ```
 
 ## Related Commands
 
 - `/new-task` - Create a new task
 - `/resume-task` - Resume a specific task
-- `/tasks` - List and choose tasks (this command)
+- `/workarea-tasks` - List and choose tasks (this command)
 
 ## Implementation Notes
 
@@ -253,12 +253,12 @@ Aggregates information from:
 ```bash
 # Morning: Start work session
 cd ~/ai/workarea
-/tasks              # See what's available
+/workarea-tasks              # See what's available
 # Select task #1
 # ... work happens ...
 
 # Afternoon: Check other tasks
-/tasks              # Quick status check
+/workarea-tasks              # Quick status check
 # Maybe switch to different task
 
 # Evening: Update status before ending
