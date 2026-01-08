@@ -22,8 +22,10 @@
 - [x] **Workflow ID Picker** - Browse recent workflows dialog
 - [x] **Phase 2: Event History + Query execution** - COMPLETE
 - [x] **Auto-Refresh** - Automatic workflow updates with configurable interval
-- [ ] Phase 3: Stack trace view (already in Query panel)
-- [ ] Phase 4: Polish (filtering, payload decoding)
+- [x] **Tabbed UI** - Separate tabs for Overview, History, and Query
+- [x] **Tree-based Event History** - Expandable events with details
+- [x] Phase 3: Stack trace view (in Query tab)
+- [ ] Phase 4: Polish (payload decoding, more filters)
 
 ## Features Implemented
 
@@ -75,27 +77,32 @@
   - Last Failure Message (if any)
 - **WorkflowService**: Encapsulates gRPC calls to Temporal
 
-### 5. Event History Panel (Phase 2)
-- **Chronological Event List**: Table showing all workflow events
+### 5. Tabbed UI Layout
+- **Overview Tab**: Execution info, pending activities, pending children
+- **History Tab**: Event history with expandable tree
+- **Query Tab**: Query execution and stack trace
+
+### 6. Event History Tree (Phase 2)
+- **Expandable Tree Nodes**: Click events to see details (input, result, failure, etc.)
 - **Event Filtering**: Filter by category (All, Workflow, Activity, Timer, Signal, Child Workflow)
 - **Color-Coded Event Types**: Visual distinction by event category
-- **Event Details**: Key details extracted for each event type
+- **Millisecond Timestamps**: Precise timing for each event
 - **Pagination Support**: API supports loading more events
 
-### 6. Query Execution Panel (Phase 2)
+### 7. Query Execution Panel (Phase 2)
 - **Custom Query Execution**: Enter query type and JSON arguments
 - **Stack Trace Button**: Quick access to `__stack_trace` built-in query
 - **Result Display**: Formatted JSON output with pretty-printing
 - **Status Indicators**: Success/error feedback
 
-### 7. Auto-Refresh (Phase 4)
+### 8. Auto-Refresh (Phase 4)
 - **Toggle Checkbox**: Enable/disable automatic updates
 - **Configurable Interval**: 3s, 5s, 10s, or 30s refresh rates
 - **Silent Updates**: Background refresh without progress dialogs
 - **Last Refresh Timestamp**: Shows when data was last updated
 - **Automatic Cleanup**: Timer stops on dispose or error
 
-### 8. Automated UI Testing
+### 9. Automated UI Testing
 - **Remote-Robot Framework**: JetBrains UI testing library (v0.11.23)
 - **Test Setup**:
   - Start IDE: `./gradlew runIdeForUiTests`
@@ -130,10 +137,10 @@ temporal-intellij-plugin/
     │   │   └── TemporalToolWindowPanel.kt
     │   └── workflow/
     │       ├── WorkflowService.kt             # gRPC API calls
-    │       ├── WorkflowInspectorPanel.kt      # Main inspector UI
+    │       ├── WorkflowInspectorPanel.kt      # Main inspector UI (tabbed)
     │       ├── WorkflowChooserDialog.kt       # Browse workflows dialog
-    │       ├── EventHistoryPanel.kt           # Phase 2
-    │       └── QueryPanel.kt                  # Phase 2
+    │       ├── EventHistoryTreePanel.kt       # Tree-based event history
+    │       └── QueryPanel.kt                  # Query execution
     ├── main/resources/
     │   ├── META-INF/plugin.xml
     │   └── icons/
@@ -235,5 +242,8 @@ A comprehensive design proposal has been created: **[docs/PLUGIN_PROPOSAL.md](te
 - [x] Phase 1 implementation (Workflow Execution Inspector)
 - [x] Automated UI testing with Remote-Robot
 - [x] Phase 2 implementation (Event History + Query execution)
-- [ ] Phase 3 implementation (Stack trace - already done via Query panel)
-- [ ] Phase 4 implementation (Polish - auto-refresh, filtering)
+- [x] Phase 3 implementation (Stack trace in Query tab)
+- [x] Auto-refresh functionality
+- [x] Tabbed UI with Overview/History/Query tabs
+- [x] Tree-based event history with expandable events
+- [ ] Phase 4 implementation (Polish - payload decoding, more filters)
