@@ -21,8 +21,9 @@
 - [x] **Automated UI Testing** - Remote-Robot setup working
 - [x] **Workflow ID Picker** - Browse recent workflows dialog
 - [x] **Phase 2: Event History + Query execution** - COMPLETE
-- [ ] Phase 3: Stack trace view
-- [ ] Phase 4: Polish (auto-refresh, filtering)
+- [x] **Auto-Refresh** - Automatic workflow updates with configurable interval
+- [ ] Phase 3: Stack trace view (already in Query panel)
+- [ ] Phase 4: Polish (filtering, payload decoding)
 
 ## Features Implemented
 
@@ -87,7 +88,14 @@
 - **Result Display**: Formatted JSON output with pretty-printing
 - **Status Indicators**: Success/error feedback
 
-### 7. Automated UI Testing
+### 7. Auto-Refresh (Phase 4)
+- **Toggle Checkbox**: Enable/disable automatic updates
+- **Configurable Interval**: 3s, 5s, 10s, or 30s refresh rates
+- **Silent Updates**: Background refresh without progress dialogs
+- **Last Refresh Timestamp**: Shows when data was last updated
+- **Automatic Cleanup**: Timer stops on dispose or error
+
+### 8. Automated UI Testing
 - **Remote-Robot Framework**: JetBrains UI testing library (v0.11.23)
 - **Test Setup**:
   - Start IDE: `./gradlew runIdeForUiTests`
