@@ -34,7 +34,7 @@
 - Temporal logo icon (dark/light theme support)
 - Workflow Inspector as main content
 - Connection status bar at bottom (address, namespace, TLS indicator)
-- "Settings" button for quick access to configuration
+- Settings gear icon in title bar (like Project view)
 
 ### 2. Settings (Preferences > Tools > Temporal)
 - **Connection Settings:**
@@ -91,7 +91,12 @@
 ### 6. Event History Tree (Phase 2)
 - **Expandable Tree Nodes**: Click events to see details (input, result, failure, etc.)
 - **Event Filtering**: Filter by category (All, Workflow, Activity, Timer, Signal, Child Workflow)
-- **Color-Coded Event Types**: Visual distinction by event category
+- **Semantic Color Coding**:
+  - Red: Failed/TimedOut/Terminated/Canceled events, and ActivityTaskStarted with retries
+  - Green: Completed events
+  - Gray: Workflow Task events (unless failed)
+  - Default: All other events
+- **Expand/Collapse Buttons**: Quick expand all or collapse all events
 - **Millisecond Timestamps**: Precise timing for each event
 - **Pagination Support**: API supports loading more events
 
@@ -189,6 +194,9 @@ cd tasks/jetbrains-temporal-plugin/temporal-intellij-plugin
 ### Run in IDE Sandbox
 ```bash
 ./gradlew runIde
+
+# Or use the restart script (kills existing, starts new)
+./restart-ide.sh
 ```
 
 ### Run UI Tests
@@ -245,6 +253,9 @@ A comprehensive design proposal has been created: **[docs/PLUGIN_PROPOSAL.md](te
 4. `06eb5ad` - Add Test Connection button to verify server settings
 5. `98ea784` - Add plugin proposal document for developer workflow visibility
 6. `249792c` - Add codec server support for payload decoding
+7. `e5ce889` - Add expand/collapse buttons and enhance payload display
+8. `453925b` - Add settings icon to tool window title bar
+9. `21744c9` - Add semantic coloring for event history and dev scripts
 
 ## Session Handoff Checklist
 - [x] Project compiles successfully
@@ -264,4 +275,8 @@ A comprehensive design proposal has been created: **[docs/PLUGIN_PROPOSAL.md](te
 - [x] Tabbed UI with Overview/History/Query tabs
 - [x] Tree-based event history with expandable events
 - [x] Codec server support for payload decoding
+- [x] Settings gear icon in tool window title bar
+- [x] Semantic coloring for events (red=failed, green=completed, gray=workflow tasks)
+- [x] Expand/collapse buttons in History tab
+- [x] Development scripts (restart-ide.sh, CLAUDE.md)
 - [ ] Phase 4 implementation (Polish - more filters, UI improvements)
