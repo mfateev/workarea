@@ -400,3 +400,66 @@ Claude Code is aware of this structure and can:
 **Claude MUST always commit and push changes to task status files** (`TASK_STATUS.md`, `task.json`) in the workarea repository after making updates. This ensures continuity across sessions.
 
 When working with Claude, mention the task name and it will understand the context.
+
+## Fork-Based Workflow (Required)
+
+**IMPORTANT:** Always use personal forks when contributing to upstream repositories. Never push directly to upstream repositories.
+
+### Why Use Forks?
+- Avoids SAML SSO authentication issues with organization repos
+- Provides a personal backup of your work
+- Follows standard open-source contribution practices
+- Allows work even without direct push access to upstream
+
+### Setting Up Fork Workflow
+
+1. **Create or identify your fork:**
+   ```bash
+   # Check if fork exists
+   gh repo view <username>/<repo-name> 2>/dev/null || gh repo fork <org>/<repo> --clone=false
+   ```
+
+2. **Add fork as remote:**
+   ```bash
+   cd tasks/<task-name>/<repo>
+   git remote add <username> https://github.com/<username>/<fork-name>.git
+   ```
+
+3. **Push to fork (not origin):**
+   ```bash
+   git push <username> <branch-name>
+   ```
+
+4. **Create PR from fork:**
+   ```bash
+   gh pr create --repo <org>/<repo> --head <username>:<branch> --base <main-branch>
+   ```
+
+### Example: Complete Fork Workflow
+
+```bash
+# 1. Working on temporalio/sdk-go, user is mfateev
+cd tasks/my-feature/sdk-go
+
+# 2. Fork exists as mfateev/temporal-go-sdk (note: fork names may differ)
+git remote add mfateev https://github.com/mfateev/temporal-go-sdk.git
+
+# 3. Make changes and commit
+git add .
+git commit -m "Implement feature"
+
+# 4. Push to YOUR fork, not origin
+git push mfateev task/my-feature
+
+# 5. Create PR from fork to upstream
+gh pr create --repo temporalio/sdk-go --head mfateev:task/my-feature --base master
+```
+
+### Claude Instructions for PRs
+
+**Claude MUST follow this workflow when creating PRs:**
+1. Identify or create user's fork of the repository
+2. Add fork as a named remote (use GitHub username)
+3. Push branch to fork remote, NOT to origin
+4. Create PR using `gh pr create` with `--head <user>:<branch>` syntax
+5. Sync fork with upstream if needed: `gh repo sync <user>/<fork> --source <org>/<repo>`

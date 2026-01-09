@@ -16,7 +16,7 @@ The Go SDK test environment does not enforce heartbeat timeout for activities du
 - [x] Root cause identified
 - [x] Fix implemented
 - [x] Tests written
-- [x] PR created: https://github.com/temporalio/sdk-go/pull/2142
+- [x] PR created: https://github.com/temporalio/sdk-go/pull/2144 (from fork)
 - [ ] CI passing
 
 ## Root Cause Analysis
