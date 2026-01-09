@@ -1,0 +1,16 @@
+{
+  "task_name": "kotlin-sdk-samples",
+  "created": "2026-01-09T10:11:00Z",
+  "description": "Kotlin SDK samples for Temporal - demonstrating idiomatic Kotlin usage of the Temporal Java SDK",
+  "repositories": [
+    {
+      "name": "samples-java",
+      "upstream_url": "https://github.com/temporalio/samples-java.git",
+      "fork_url": "https://github.com/mfateev/temporal-java-samples.git",
+      "branch": "sdk-kotlin",
+      "fork_owner": "mfateev",
+      "tracking_remote": "mfateev",
+      "tracking_branch": "sdk-kotlin"
+    }
+  ]
+}
