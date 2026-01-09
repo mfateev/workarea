@@ -1,0 +1,16 @@
+{
+  "task_name": "run-java-samples",
+  "created": "2026-01-09T00:41:32Z",
+  "pr_url": null,
+  "pr_number": null,
+  "repositories": [{
+  "name": "samples-java",
+  "upstream_url": "https://github.com/temporalio/samples-java.git",
+  "fork_url": null,
+  "branch": "task/run-java-samples",
+  "fork_owner": null,
+  "tracking_remote": "origin",
+  "tracking_branch": "task/run-java-samples"
+}],
+  "description": "run-java-samples"
+}

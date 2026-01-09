@@ -1,17 +1,4 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/maxim/ai/workarea/bin/list-tasks.sh"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(./bin/setup-task-workspace.sh:*)",
@@ -26,7 +13,21 @@
       "Bash(git commit:*)",
       "Bash(gh repo view:*)",
       "Bash(chmod:*)",
-      "Bash(./bin/list-tasks.sh:*)"
+      "Bash(./bin/list-tasks.sh:*)",
+      "./gradlew runIdeForUiTests & sleep 3"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/maxim/ai/workarea/bin/list-tasks.sh"
+          }
+        ]
+      }
     ]
   }
 }

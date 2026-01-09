@@ -25,7 +25,8 @@
 - [x] **Tabbed UI** - Separate tabs for Overview, History, and Query
 - [x] **Tree-based Event History** - Expandable events with details
 - [x] Phase 3: Stack trace view (in Query tab)
-- [ ] Phase 4: Polish (payload decoding, more filters)
+- [x] **Codec Server Support** - Remote payload decoding via codec server
+- [ ] Phase 4: Polish (more filters, UI improvements)
 
 ## Features Implemented
 
@@ -47,7 +48,12 @@
   - Server CA certificate path
   - Server name override
   - Disable host verification
+- **Codec Server Settings:**
+  - Endpoint URL (e.g., http://localhost:8888)
+  - Authorization header (e.g., Bearer token)
+  - Custom HTTP headers (KEY=VALUE format)
 - "Test Connection" button with progress dialog
+- "Test Codec Connection" button for codec server validation
 
 ### 3. Test Connection
 - Uses Temporal SDK GetSystemInfo API
@@ -116,6 +122,14 @@
   - `UiFixtures.kt` - Custom fixtures for Temporal components
 - **JDK17 Fix**: Uses `--add-opens` JVM argument for GSON/Retrofit
 
+### 10. Codec Server Support
+- **Remote Payload Decoding**: Decrypt/decompress payloads via external codec server
+- **Protocol**: HTTP POST to `/decode` endpoint with Proto3 JSON payloads
+- **Headers**: `Content-Type`, `X-Namespace`, `Authorization`, custom headers
+- **Integration**: Automatic decoding in WorkflowService before display
+- **Settings UI**: Configure endpoint, auth, and custom headers
+- **Test Connection**: Validate codec server connectivity from settings
+
 ## Project Structure
 ```
 temporal-intellij-plugin/
@@ -128,6 +142,8 @@ temporal-intellij-plugin/
     ├── main/kotlin/io/temporal/intellij/
     │   ├── HelloWorldAction.kt
     │   ├── TemporalIcons.kt
+    │   ├── codec/
+    │   │   └── CodecClient.kt                 # Remote codec server client
     │   ├── settings/
     │   │   ├── TemporalSettings.kt
     │   │   ├── TemporalSettingsConfigurable.kt
@@ -136,7 +152,7 @@ temporal-intellij-plugin/
     │   │   ├── TemporalToolWindowFactory.kt
     │   │   └── TemporalToolWindowPanel.kt
     │   └── workflow/
-    │       ├── WorkflowService.kt             # gRPC API calls
+    │       ├── WorkflowService.kt             # gRPC API calls + codec integration
     │       ├── WorkflowInspectorPanel.kt      # Main inspector UI (tabbed)
     │       ├── WorkflowChooserDialog.kt       # Browse workflows dialog
     │       ├── EventHistoryTreePanel.kt       # Tree-based event history
@@ -228,6 +244,7 @@ A comprehensive design proposal has been created: **[docs/PLUGIN_PROPOSAL.md](te
 3. `8520358` - Add Temporal server connection settings
 4. `06eb5ad` - Add Test Connection button to verify server settings
 5. `98ea784` - Add plugin proposal document for developer workflow visibility
+6. `249792c` - Add codec server support for payload decoding
 
 ## Session Handoff Checklist
 - [x] Project compiles successfully
@@ -246,4 +263,5 @@ A comprehensive design proposal has been created: **[docs/PLUGIN_PROPOSAL.md](te
 - [x] Auto-refresh functionality
 - [x] Tabbed UI with Overview/History/Query tabs
 - [x] Tree-based event history with expandable events
-- [ ] Phase 4 implementation (Polish - payload decoding, more filters)
+- [x] Codec server support for payload decoding
+- [ ] Phase 4 implementation (Polish - more filters, UI improvements)
