@@ -499,3 +499,27 @@ gh pr create --repo temporalio/sdk-go --head mfateev:task/my-feature --base mast
 3. Push branch to fork remote, NOT to origin
 4. Create PR using `gh pr create` with `--head <user>:<branch>` syntax
 5. Sync fork with upstream if needed: `gh repo sync <user>/<fork> --source <org>/<repo>`
+
+### Checking PR Status
+
+**When checking PR status, Claude MUST verify:**
+1. CI check results: `gh pr checks <pr-number> --repo <org>/<repo>`
+2. Branch freshness - check if branch is up to date with base:
+   ```bash
+   # Check if PR branch is behind base branch
+   gh pr view <pr-number> --repo <org>/<repo> --json mergeStateStatus,mergeable
+   ```
+3. If branch is out of date, notify user and offer to rebase:
+   ```bash
+   # Update branch with base (from worktree)
+   git fetch origin <base-branch>
+   git rebase origin/<base-branch>
+   git push <fork-remote> <branch> --force-with-lease
+   ```
+
+**Merge state values:**
+- `BEHIND` - Branch is out of date with base, needs rebase/merge
+- `BLOCKED` - Cannot merge due to branch protection rules
+- `CLEAN` - Ready to merge
+- `DIRTY` - Merge conflicts exist
+- `UNKNOWN` - State cannot be determined
