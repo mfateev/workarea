@@ -15,6 +15,9 @@ workarea/
 │   │   └── repo2/   # Git worktree for repo2
 │   └── feature-b/
 │       └── repo1/
+├── archived/        # Completed tasks (for historical reference)
+│   ├── README.md    # Index of all archived tasks with dates
+│   └── old-task/    # Archived task (TASK_STATUS.md + task.json only)
 └── bin/             # Utility scripts
 ```
 
@@ -288,6 +291,38 @@ git worktree remove ../../tasks/completed-task/repo-name
 rm -rf tasks/completed-task
 ```
 
+### Archive Completed Task (Preferred)
+
+Instead of deleting completed tasks, archive them for historical reference:
+
+```bash
+# 1. Remove git worktrees (they contain repo data, not needed in archive)
+cd tasks/completed-task
+for dir in */; do
+  if [ -d "$dir/.git" ] || [ -f "$dir/.git" ]; then
+    repo_name=$(basename "$dir")
+    cd /Users/maxim/workarea/repos/$repo_name
+    git worktree remove "../../tasks/completed-task/$repo_name" 2>/dev/null || true
+    cd /Users/maxim/workarea/tasks/completed-task
+  fi
+done
+
+# 2. Move task folder to archived (only TASK_STATUS.md and task.json remain)
+mv /Users/maxim/workarea/tasks/completed-task /Users/maxim/workarea/archived/
+
+# 3. Update archived/README.md with task entry
+```
+
+**Claude MUST archive tasks (not delete) when they are completed:**
+1. Remove all git worktrees from the task folder
+2. Move the task folder to `archived/`
+3. Add entry to `archived/README.md` with:
+   - Task name and overview
+   - Start date (from task.json `created`)
+   - Completion date (current date)
+   - PR/Issue link
+4. Commit and push changes to workarea
+
 ### List All Worktrees
 ```bash
 cd repos/repo-name
@@ -298,10 +333,11 @@ git worktree list
 
 1. **One Task = One Goal**: Keep tasks focused and atomic
 2. **Clean Branches**: Use descriptive task names (e.g., `fix-login-bug`, `add-dark-mode`)
-3. **Regular Cleanup**: Remove completed task workspaces
+3. **Archive Completed Tasks**: Move completed tasks to `archived/` instead of deleting
 4. **Commit Often**: Each worktree maintains its own state
 5. **Push Early**: Push branches to back up your work
 6. **Persist Task Status**: Always commit and push changes to `TASK_STATUS.md` and `task.json` after updates
+7. **Use Forks**: Always push to personal forks and create PRs from them
 
 ## Example Workflows
 
