@@ -202,6 +202,8 @@ Manually maintained, tracks:
 - Before/after significant code changes
 - When blocked or changing direction
 
+**IMPORTANT:** Always commit and push changes to `TASK_STATUS.md` immediately after updating. This ensures task progress is persisted and available across sessions and machines.
+
 **Example structure:**
 ```markdown
 # Task Status: [Task Name]
@@ -299,6 +301,7 @@ git worktree list
 3. **Regular Cleanup**: Remove completed task workspaces
 4. **Commit Often**: Each worktree maintains its own state
 5. **Push Early**: Push branches to back up your work
+6. **Persist Task Status**: Always commit and push changes to `TASK_STATUS.md` and `task.json` after updates
 
 ## Example Workflows
 
@@ -393,5 +396,7 @@ Claude Code is aware of this structure and can:
 - Work across multiple repositories
 - Create commits in appropriate repos
 - Understand the relationship between tasks and code
+
+**Claude MUST always commit and push changes to task status files** (`TASK_STATUS.md`, `task.json`) in the workarea repository after making updates. This ensures continuity across sessions.
 
 When working with Claude, mention the task name and it will understand the context.
