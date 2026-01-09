@@ -13,7 +13,18 @@
       "Bash(git commit:*)",
       "Bash(gh repo view:*)",
       "Bash(chmod:*)",
-      "Bash(./bin/list-tasks.sh:*)"
+      "Bash(./bin/list-tasks.sh:*)",
+      "Bash(grep:*)",
+      "Skill(resume-task)",
+      "Bash(./bin/resume-task.sh:*)",
+      "Bash(gh issue view:*)",
+      "Bash(ls:*)",
+      "Bash(go build:*)",
+      "Bash(/usr/local/go/bin/go version:*)",
+      "Bash(/opt/homebrew/bin/go version:*)",
+      "Bash(brew install:*)",
+      "Bash(/opt/homebrew/bin/go test:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

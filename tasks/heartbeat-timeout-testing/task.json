@@ -1,0 +1,16 @@
+{
+  "task_name": "heartbeat-timeout-testing",
+  "created": "2026-01-08T20:07:29Z",
+  "pr_url": "https://github.com/temporalio/sdk-go/pull/2142",
+  "pr_number": 2142,
+  "repositories": [{
+  "name": "sdk-go",
+  "upstream_url": "https://github.com/temporalio/sdk-go.git",
+  "fork_url": null,
+  "branch": "task/heartbeat-timeout-testing",
+  "fork_owner": null,
+  "tracking_remote": "origin",
+  "tracking_branch": "task/heartbeat-timeout-testing"
+}],
+  "description": "heartbeat-timeout-testing"
+}
