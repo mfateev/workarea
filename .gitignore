@@ -6,12 +6,8 @@
 /workspaces/*
 !/workspaces/.gitkeep
 
-# Legacy paths - keep during migration transition
-# These patterns handle the old structure at root level
-# Can be removed after confirming migration is complete
-tasks/*/*
-!tasks/*/*.md
-!tasks/*/*.json
+# Legacy task directory - user-specific, fully gitignored
+/tasks/
 
 # Local Claude settings (user-specific permissions)
 .claude/settings.local.json
