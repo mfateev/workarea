@@ -81,13 +81,6 @@ detect_current_workspace() {
         fi
     fi
 
-    # Legacy support: check if we're in old tasks/ structure (at root)
-    if [ -d "$workarea_root/tasks" ] && [[ "$cwd" == "$workarea_root/tasks"* || "$cwd" == "$workarea_root" ]]; then
-        # Return workarea root as pseudo-workspace for legacy mode
-        echo "$workarea_root"
-        return 0
-    fi
-
     return 1
 }
 
@@ -104,12 +97,7 @@ WORKSPACE_DIR=""
 TASKS_DIR=""
 
 if WORKSPACE_DIR=$(detect_current_workspace "$WORKAREA_ROOT"); then
-    if [ "$WORKSPACE_DIR" = "$WORKAREA_ROOT" ]; then
-        # Legacy mode - tasks at root level
-        TASKS_DIR="${WORKAREA_ROOT}/tasks"
-    else
-        TASKS_DIR="${WORKSPACE_DIR}/tasks"
-    fi
+    TASKS_DIR="${WORKSPACE_DIR}/tasks"
 else
     # Not in a workspace - show available workspaces
     echo -e "${GREEN}=== Available Workspaces ===${NC}"
@@ -121,14 +109,13 @@ else
         shopt -u nullglob
 
         if [ ${#WORKSPACE_DIRS[@]} -eq 0 ]; then
-            echo -e "${YELLOW}No workspaces found.${NC}"
+            echo -e "${YELLOW}No workspaces attached.${NC}"
             echo ""
-            echo "Create your first workspace:"
+            echo "Attach a workspace with tasks using:"
+            echo -e "  ${BLUE}/clone-workspace <git-url>${NC}"
+            echo ""
+            echo "Or create a new empty workspace:"
             echo -e "  ${BLUE}/new-workspace <name>${NC}"
-            echo ""
-            echo "Example:"
-            echo "  /new-workspace personal"
-            echo "  /new-workspace work"
         else
             WS_NUM=0
             for ws_path in "${WORKSPACE_DIRS[@]}"; do
@@ -166,10 +153,13 @@ else
             echo -e "To see tasks: ${BLUE}cd workspaces/<name>${NC} then ${BLUE}/workarea-tasks${NC}"
         fi
     else
-        echo -e "${YELLOW}Workspaces directory not found.${NC}"
+        echo -e "${YELLOW}No workspaces attached.${NC}"
         echo ""
-        echo "Create your first workspace:"
-        echo "  /new-workspace <name>"
+        echo "Attach a workspace with tasks using:"
+        echo -e "  ${BLUE}/clone-workspace <git-url>${NC}"
+        echo ""
+        echo "Or create a new empty workspace:"
+        echo -e "  ${BLUE}/new-workspace <name>${NC}"
     fi
     exit 0
 fi
@@ -191,12 +181,8 @@ TASK_DIRS=("$TASKS_DIR"/*)
 shopt -u nullglob
 
 if [ ${#TASK_DIRS[@]} -eq 0 ]; then
-    WORKSPACE_NAME=""
-    if [ "$WORKSPACE_DIR" != "$WORKAREA_ROOT" ]; then
-        WORKSPACE_NAME=$(basename "$WORKSPACE_DIR")
-    fi
-
-    echo -e "${YELLOW}No tasks found${NC}${WORKSPACE_NAME:+ in workspace '$WORKSPACE_NAME'}."
+    WORKSPACE_NAME=$(basename "$WORKSPACE_DIR")
+    echo -e "${YELLOW}No tasks found in workspace '${WORKSPACE_NAME}'.${NC}"
     echo ""
     echo "Start a new task:"
     echo "  /new-task <description or PR URL>"
@@ -206,13 +192,9 @@ if [ ${#TASK_DIRS[@]} -eq 0 ]; then
     exit 0
 fi
 
-# Show workspace context if not legacy
-if [ "$WORKSPACE_DIR" != "$WORKAREA_ROOT" ]; then
-    WORKSPACE_NAME=$(basename "$WORKSPACE_DIR")
-    echo -e "${GREEN}=== Tasks in workspace: ${WORKSPACE_NAME} ===${NC}"
-else
-    echo -e "${GREEN}=== Available Tasks ===${NC}"
-fi
+# Show workspace context
+WORKSPACE_NAME=$(basename "$WORKSPACE_DIR")
+echo -e "${GREEN}=== Tasks in workspace: ${WORKSPACE_NAME} ===${NC}"
 echo ""
 
 # Counter for numbering
