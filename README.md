@@ -1,249 +1,126 @@
-# Workarea - Task Workspace Management
+# Workarea - Multi-Repository Task Management
 
-A structured workflow system for managing multi-repository development tasks using git worktrees.
+Reusable tooling for managing development tasks across multiple git repositories using workspaces and git worktrees.
 
-## What is This?
+## Overview
 
-This repository contains the infrastructure and documentation for organizing development work across multiple git repositories using a task-based approach with git worktrees.
-
-**Repository URL:** https://github.com/<username>/workarea
-
-## Structure
+Workarea provides a structured approach to organizing multi-repo development work:
+- **Workspaces** isolate related tasks (e.g., "issues", "projects", "experiments")
+- **Tasks** contain git worktrees for each repository involved
+- **Shared repos** save disk space across all workspaces
+- **Portable configs** enable cross-machine workflows
 
 ```
 workarea/
-├── bin/                    # Utility scripts
-│   └── setup-task-workspace.sh   # Main setup script
-├── .claude/                # Claude Code configuration
-│   └── commands/          # Custom slash commands
-│       └── new-task.md    # /new-task skill definition
-├── tasks/                  # Task workspaces (not in git)
-│   └── <task-name>/
-│       ├── task.json       # Task configuration (tracked)
-│       ├── TASK_STATUS.md  # Task documentation (tracked)
-│       └── <repo>/         # Git worktree (not tracked)
-├── repos/                  # Repository storage (not in git)
-│   └── <repo-name>/       # Main repositories
-├── CLAUDE.md              # Main documentation
-├── IMPROVEMENTS.md        # Changelog
-└── README.md             # This file
+├── bin/                     # Shared scripts (tracked)
+├── repos/                   # Git clones - shared (gitignored)
+├── workspaces/              # Workspace container
+│   └── <name>/              # Individual workspaces (gitignored, separate repos)
+│       ├── tasks/
+│       │   └── <task>/
+│       │       ├── task.json       # Portable config
+│       │       ├── TASK_STATUS.md  # Progress notes
+│       │       └── <repo>/         # Git worktree
+│       └── archived/
+├── .claude/                 # Claude Code skills (tracked)
+└── CLAUDE.md                # Documentation (tracked)
 ```
 
-## What's Tracked in Git
+## Commands
 
-**Included:**
-- ✅ Documentation (`.md` files)
-- ✅ Scripts (`bin/`)
-- ✅ Configuration (`.claude/`)
-- ✅ Task status documents (`tasks/*/TASK_STATUS.md`)
-
-**Excluded:**
-- ❌ Cloned repositories (`repos/`)
-- ❌ Git worktrees (`tasks/*/*/`)
-
-This keeps the workspace repository lightweight while preserving documentation and tooling.
-
-## Features
-
-### 🚀 Automated Task Setup
-
-Set up a complete task workspace with one command:
-
-```bash
-# For PR URLs (automatic branch detection)
-/new-task https://github.com/org/repo/pull/123
-
-# For new tasks
-/new-task Implement user authentication
-```
-
-### 🔄 Task Restoration
-
-Resume any task on any machine with full context:
-
-```bash
-# Clone workarea repository
-git clone https://github.com/<username>/workarea.git
-cd workarea
-
-# List available tasks
-ls tasks/
-
-# Restore complete task workspace
-/resume-task async-await
-# Or use the script directly:
-./bin/resume-task.sh async-await
-
-# Start working immediately
-cd tasks/async-await/sdk-java
-```
-
-The `task.json` file in each task directory contains:
-- Repository URLs (upstream and your fork)
-- Branch names
-- Remote tracking configuration
-- PR information
-
-**This enables perfect task restoration from any machine!**
-
-### 🔄 Git Worktree Management
-
-- Each task gets isolated worktrees
-- No need to clone repositories multiple times
-- Work on multiple tasks in parallel
-- Fast switching between tasks
-
-### 📋 Task Status Documentation
-
-Every task includes a `TASK_STATUS.md` that tracks:
-- Task overview and goals
-- Current progress
-- CI/test status
-- Investigation findings
-- Next steps for continuation
-
-### 🔌 PR URL Support
-
-Pass GitHub PR URLs directly:
-- Automatically fetches PR branch
-- Handles fork remotes
-- Sets up correct branch checkout
+| Command | Description |
+|---------|-------------|
+| `/new-workspace` | Create a new workspace |
+| `/clone-workspace` | Clone existing workspace from GitHub |
+| `/detach-workspace` | Safely remove workspace (after push) |
+| `/workarea-tasks` | List workspaces or tasks |
+| `/new-task` | Create a new task |
+| `/resume-task` | Restore task worktrees |
 
 ## Quick Start
 
-### 📋 List Your Tasks (Recommended First Step)
+### First Time Setup
 
-**Start every session by seeing what's available:**
+```bash
+# 1. Clone workarea tooling
+git clone https://github.com/<username>/workarea.git
+cd workarea
+
+# 2. Create a workspace
+/new-workspace issues "Bug fixes and PRs"
+
+# 3. Navigate and create a task
+cd workspaces/issues
+/new-task https://github.com/org/repo/pull/123
+```
+
+### Returning User
 
 ```bash
 cd workarea
-/workarea-tasks
+/workarea-tasks              # See workspaces
+cd workspaces/issues
+/workarea-tasks              # See tasks
+/resume-task my-feature      # Restore worktrees
 ```
 
-This shows all your active tasks with:
-- Status indicators (🔴 failing CI, 🟡 in progress, 🟢 passing)
-- Last updated time
-- PR links and descriptions
-- Quick selection to resume any task
+### New Machine
 
-### Starting a New Task
+```bash
+# Clone tooling
+git clone https://github.com/<username>/workarea.git
+cd workarea
 
-1. **Clone this repository:**
-   ```bash
-   git clone https://github.com/<username>/workarea.git
-   cd workarea
-   ```
+# Clone your workspace
+/clone-workspace workspace-issues
+cd workspaces/issues
+/resume-task my-feature
+```
 
-2. **Start a new task:**
-   ```bash
-   # With Claude Code (recommended)
-   /new-task https://github.com/org/repo/pull/123
+## Workspace Lifecycle
 
-   # Or with script directly
-   ./bin/setup-task-workspace.sh task-name https://github.com/org/repo/pull/123
-   ```
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  /new-workspace │ ──► │  Push to GitHub │ ──► │ /clone-workspace│
+│  (create local) │     │  (backup/share) │     │ (new machine)   │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+                                                        ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│/detach-workspace│ ◄── │   git push      │ ◄── │  Work on tasks  │
+│ (cleanup local) │     │  (save progress)│     │ /new-task, etc  │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
 
-3. **Work on the task:**
-   ```bash
-   cd tasks/task-name/repo
-   # Make changes, commit, push
-   ```
+## Key Concepts
 
-4. **Track progress:**
-   ```bash
-   # Update task status
-   vim tasks/task-name/TASK_STATUS.md
+### Workspaces
+- Isolated containers for related tasks
+- Each workspace is a separate git repository
+- Can be pushed to GitHub and cloned elsewhere
+- Gitignored in main workarea repo
 
-   # Commit documentation changes
-   git add tasks/task-name/TASK_STATUS.md
-   git commit -m "Update task status"
-   git push
-   ```
+### Shared Repos
+- All workspaces share `repos/` directory
+- Repositories cloned once, used by all tasks
+- Git worktrees provide isolated working directories
 
-### Resuming an Existing Task
-
-1. **Clone workarea (on new machine):**
-   ```bash
-   git clone https://github.com/<username>/workarea.git
-   cd workarea
-   ```
-
-2. **See available tasks:**
-   ```bash
-   ls tasks/
-   ```
-
-3. **Resume a task:**
-   ```bash
-   # With Claude Code (recommended)
-   /resume-task async-await
-
-   # Or with script directly
-   ./bin/resume-task.sh async-await
-   ```
-
-4. **Continue working:**
-   ```bash
-   cd tasks/async-await/repo
-   git pull  # Get latest changes from your fork
-   # Continue working...
-   ```
-
-## Documentation
-
-- **[CLAUDE.md](CLAUDE.md)** - Complete workflow guide
-- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** - Changelog and improvements
-- **[setup-task-workspace.sh](bin/setup-task-workspace.sh)** - Main setup script
+### Task Portability
+- `task.json` captures full repo/branch configuration
+- `TASK_STATUS.md` preserves investigation context
+- `/resume-task` restores complete workspace from config
 
 ## Requirements
 
-- Git 2.5+ (for worktree support)
-- GitHub CLI (`gh`) for PR URL support
+- Git 2.5+ (worktree support)
+- GitHub CLI (`gh`) for PR/repo operations
+- `jq` for JSON parsing
 - Bash 4.0+
 
-## Benefits
+## Documentation
 
-- **Session Continuity:** Task status documents preserve context across sessions
-- **Parallel Work:** Multiple tasks without repository conflicts
-- **Efficient Storage:** Shared git objects, no duplicate clones
-- **Clean Organization:** Task-based structure with clear separation
-- **Automation:** One command setup for both new tasks and existing PRs
-
-## Example Workflow
-
-```bash
-# 1. Start working on a PR
-/new-task https://github.com/org/repo/pull/123
-
-# 2. Navigate to task
-cd tasks/my-feature/repo
-
-# 3. Investigate, make changes
-# ... work happens here ...
-
-# 4. Update task status
-vim ../TASK_STATUS.md
-
-# 5. Commit and push changes
-git add .
-git commit -m "Implement feature"
-git push
-
-# 6. Document progress in workarea repo
-cd ../..  # Back to workarea root
-git add tasks/my-feature/TASK_STATUS.md
-git commit -m "Update task status"
-git push
-```
-
-## Contributing
-
-This is a personal workspace management system. Feel free to fork and adapt for your needs.
+- **[CLAUDE.md](CLAUDE.md)** - Detailed workflow guide
 
 ## License
 
-Private repository for personal use.
-
----
-
-**Purpose:** Efficient multi-repository task management with Claude Code
+MIT - Feel free to fork and adapt.
