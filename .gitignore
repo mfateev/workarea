@@ -1,11 +1,15 @@
-# Repository storage - exclude all cloned repositories
+# Repository storage - shared across all workspaces
 /repos/
 
-# Task worktrees - exclude git worktrees but keep documentation
-# Exclude all directories within tasks/*/
-tasks/*/*
+# Workspaces - all workspace content is local/gitignored
+# Only .gitkeep is tracked to preserve the directory structure
+/workspaces/*
+!/workspaces/.gitkeep
 
-# But include task metadata and documentation
+# Legacy paths - keep during migration transition
+# These patterns handle the old structure at root level
+# Can be removed after confirming migration is complete
+tasks/*/*
 !tasks/*/*.md
 !tasks/*/*.json
 

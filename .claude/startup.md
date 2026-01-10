@@ -1,14 +1,28 @@
 # Workarea Startup Guide
 
-**Welcome to your multi-task workspace!**
+**Welcome to your multi-workspace task manager!**
 
-This workspace helps you manage multiple development tasks across repositories using git worktrees.
+This tooling helps you manage multiple development tasks across repositories using git worktrees and workspaces.
 
 ## Quick Start Commands
 
-- **`/workarea-tasks`** - See all available tasks and choose which to work on
-- **`/new-task`** - Start a new task from a PR or description
-- **`/resume-task`** - Restore a specific task by name
+- **`/workarea-tasks`** - See workspaces (at root) or tasks (in workspace)
+- **`/new-workspace`** - Create a new workspace
+- **`/new-task`** - Start a new task (must be in workspace)
+- **`/resume-task`** - Restore a specific task (must be in workspace)
+
+## First Time Setup
+
+```bash
+# 1. Create your first workspace
+/new-workspace personal "My projects"
+
+# 2. Navigate to it
+cd workspaces/personal
+
+# 3. Create or resume tasks
+/new-task https://github.com/org/repo/pull/123
+```
 
 ## Recommended: Start Every Session
 
@@ -17,29 +31,33 @@ This workspace helps you manage multiple development tasks across repositories u
 ```
 
 This shows you:
-- All active tasks
-- CI status for each
-- Last time you worked on each
-- Quick selection to resume any task
+- **At root**: Available workspaces with task counts
+- **In workspace**: Tasks with CI status and last update time
 
-## Available Tasks
+## Directory Structure
 
-Run `/workarea-tasks` to see your current work queue with details like:
 ```
-1. 🔴 async-await       [PR #2751] Failing CI - needs fix
-2. 🟡 feature-auth      [WIP] In progress
-3. 🟢 fix-pagination    [Done] Ready to clean up
+workarea/
+├── bin/                 # Shared scripts
+├── repos/               # Shared git clones
+├── workspaces/          # Your workspaces
+│   ├── personal/        # A workspace
+│   │   ├── tasks/       # Active tasks
+│   │   └── archived/    # Completed tasks
+│   └── work/            # Another workspace
+└── CLAUDE.md            # Full documentation
 ```
 
 ## Your Workflow
 
 ### Starting Your Day
 ```bash
-cd /Users/maxim/ai/workarea
-/workarea-tasks                    # Choose what to work on
-# Select a task from the list
-cd tasks/<task>/repo
-git pull                  # Get latest from your fork
+cd workarea
+/workarea-tasks          # Pick workspace
+cd workspaces/<name>
+/workarea-tasks          # Pick task
+cd tasks/<task>/<repo>
+git pull                 # Get latest
 ```
 
 ### During Work
@@ -49,49 +67,22 @@ git pull                  # Get latest from your fork
 
 ### Ending Your Day
 ```bash
-# Push code changes
-git push
-
+git push                 # Push code changes
 # Update task documentation
-cd ..
-vim TASK_STATUS.md
-git add TASK_STATUS.md
-git commit -m "EOD: Update task status"
-git push
-```
-
-### Switching Machines
-```bash
-# On new machine
-git clone https://github.com/mfateev/workarea.git
-cd workarea
-/workarea-tasks                    # Same interface, choose task
-```
-
-## Directory Structure
-
-```
-workarea/
-├── tasks/              # Your active work
-│   ├── async-await/    # PR #2751 investigation
-│   └── feature-auth/   # Authentication implementation
-├── repos/              # Cloned repositories (not in git)
-└── bin/                # Automation scripts
+vim ../TASK_STATUS.md
 ```
 
 ## Key Concepts
 
-- **Tasks are portable** - Work on any machine
-- **Fork-based** - All changes go to mfateev/* forks
-- **Documented** - Every task has status notes
-- **Automated** - Scripts handle repo setup
+- **Workspaces** - Isolated containers for related tasks
+- **Shared repos** - All workspaces share same cloned repos
+- **Portable tasks** - task.json enables cross-machine work
+- **Fork-based** - Always push to personal forks
 
 ## Need Help?
 
 - **CLAUDE.md** - Complete workflow guide
-- **README.md** - Feature overview
-- **CROSS_MACHINE_WORKFLOW.md** - Multi-machine usage
 
 ---
 
-**Ready to start?** Run `/workarea-tasks` to see your work queue!
+**Ready to start?** Run `/workarea-tasks` to see your workspaces!

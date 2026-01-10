@@ -2,6 +2,8 @@
 
 Restore a task workspace from its saved configuration.
 
+**IMPORTANT:** Must be run from within a workspace (`workspaces/<name>/`).
+
 ## Usage
 
 ```
@@ -11,6 +13,10 @@ Restore a task workspace from its saved configuration.
 ## Examples
 
 ```
+# First, navigate to a workspace
+cd workspaces/default
+
+# Then resume a task
 /resume-task async-await
 /resume-task feature-authentication
 /resume-task fix-pagination
@@ -18,7 +24,7 @@ Restore a task workspace from its saved configuration.
 
 ## Purpose
 
-This command restores a complete task workspace from a fresh workarea clone by:
+This command restores a complete task workspace by:
 - Reading the `task.json` configuration file
 - Cloning required repositories (if not already present)
 - Adding fork remotes automatically
@@ -31,7 +37,19 @@ This command restores a complete task workspace from a fresh workarea clone by:
 
 When this command is invoked:
 
-1. **Validate task exists**
+### 0. Verify workspace context (REQUIRED)
+
+Check if currently in a workspace (`workspaces/<name>/`).
+
+**If NOT in a workspace:**
+- Show available workspaces
+- Ask: "Which workspace contains this task?"
+- Navigate to selected workspace before proceeding
+
+**If in a workspace:**
+- Proceed to step 1
+
+### 1. Validate task exists
    - Check if `tasks/<task-name>/` directory exists
    - Verify `tasks/<task-name>/task.json` is present
    - If not found, list available tasks from `tasks/` directory

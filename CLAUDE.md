@@ -1,213 +1,194 @@
 # Claude Code - Task Workspace Management
 
-This document explains the task-based workflow for managing multiple git repositories using Claude Code.
+This document explains the workspace-based workflow for managing multiple git repositories using Claude Code.
 
 ## Overview
 
-This workspace uses a structured approach to organize work across multiple repositories:
+This repository provides **reusable tooling** for task management across multiple git repositories. User-specific tasks and workspaces are gitignored, making this repository shareable.
 
 ```
 workarea/
-├── repos/           # Main git repositories (bare clones)
-├── tasks/           # Task-specific workspaces
-│   ├── feature-a/   # Each task has its own folder
-│   │   ├── repo1/   # Git worktree for repo1
-│   │   └── repo2/   # Git worktree for repo2
-│   └── feature-b/
-│       └── repo1/
-├── archived/        # Completed tasks (for historical reference)
-│   ├── README.md    # Index of all archived tasks with dates
-│   └── old-task/    # Archived task (TASK_STATUS.md + task.json only)
-└── bin/             # Utility scripts
+├── bin/                 # Shared utility scripts (tracked)
+├── repos/               # Git repository clones (shared, gitignored)
+├── .claude/             # Claude skills and configuration (tracked)
+├── workspaces/          # Container for user workspaces
+│   ├── .gitkeep         # Keeps folder in git
+│   └── <name>/          # Individual workspaces (gitignored)
+│       ├── bin -> ../../bin  # Symlink to shared scripts
+│       ├── tasks/            # Active tasks
+│       │   └── <task>/       # Task folder
+│       │       ├── task.json      # Machine config
+│       │       ├── TASK_STATUS.md # Human notes
+│       │       └── <repo>/        # Git worktree
+│       ├── archived/         # Completed tasks
+│       └── README.md         # Workspace description
+└── CLAUDE.md            # This documentation (tracked)
 ```
 
-## Benefits
+## Key Concepts
 
-- **Isolation**: Each task has its own workspace with separate worktrees
-- **Efficiency**: No need to clone repos multiple times or switch branches
-- **Organization**: All task-related changes are grouped together
-- **Parallel Work**: Work on multiple features simultaneously without conflicts
+- **Workspaces**: Isolated containers for related tasks (e.g., "personal", "work", "project-x")
+- **Shared Repos**: All workspaces share the same `repos/` directory to save disk space
+- **Tasks**: Each task has its own folder with git worktrees for each repository
+- **Portability**: Task configuration in `task.json` allows restoring workspaces on any machine
 
 ## Available Commands
 
-This workspace includes custom Claude Code commands:
+- **`/new-workspace`** - Create a new workspace
+  - Creates isolated workspace with tasks/ and archived/ directories
+  - Sets up bin symlink for script access
+  - **Run this first if you don't have a workspace!**
 
-- **`/workarea-tasks`** - List all available tasks ⭐ **Run this first!**
-  - Shows all active tasks with status
-  - Displays CI failures, progress, completion
-  - Quick selection to resume any task
-  - **Recommended:** Start every session with this command
+- **`/workarea-tasks`** - List tasks or workspaces
+  - At workarea root: Shows available workspaces
+  - Inside a workspace: Shows tasks in that workspace
+  - **Recommended:** Start sessions with this command
 
-- **`/new-task`** - Set up a new task workspace
+- **`/new-task`** - Create a new task (must be in a workspace)
   - Accepts task descriptions or PR URLs
   - Automatically configures repositories and worktrees
   - Generates task.json and TASK_STATUS.md
 
-- **`/resume-task`** - Restore an existing task workspace
+- **`/resume-task`** - Restore a task (must be in a workspace)
   - Reads task.json configuration
   - Clones repos and creates worktrees
   - Perfect for continuing work on another machine
 
-## Workflow
+## Quick Start
 
-### 1. Using the `/new-task` Command (Recommended)
-
-The easiest way to set up a new task workspace:
-
-```
-/new-task Implement user authentication for frontend and backend
-# Or with PR URL:
-/new-task https://github.com/org/repo/pull/123
-```
-
-Claude will:
-1. Analyze the task description or fetch PR details
-2. Identify which repositories are needed
-3. Run the setup script automatically
-4. Create worktrees in `tasks/<task-name>/`
-5. Generate task.json configuration
-
-### 2. Manual Setup with Script
-
-If you know exactly which repositories you need:
-
-```bash
-# With repository URLs
-./bin/setup-task-workspace.sh task-name \
-  https://github.com/org/repo1.git \
-  https://github.com/org/repo2.git
-
-# With PR URL (automatically handles fork branches)
-./bin/setup-task-workspace.sh task-name \
-  https://github.com/org/repo/pull/123
-```
-
-**Features:**
-- **PR URL Support**: Pass a GitHub PR URL and the script automatically:
-  - Fetches the PR branch
-  - Detects if it's from a fork
-  - Adds the fork remote
-  - Checks out the correct branch
-- **Absolute Path Handling**: Works from any directory
-- **Smart Branch Detection**: Uses PR branch, custom branch, or creates new branch
-
-**Options:**
-- `-b <branch>` - Use a specific branch instead of creating `task/<task-name>`
-- `-h, --help` - Show help message
-
-### 3. Working on a Task
-
-Once the workspace is set up:
-
-```bash
-cd tasks/my-task
-ls                    # See all repository worktrees
-cd repo1              # Work in specific repo
-git status            # Normal git commands work
-```
-
-Each worktree is a full git working directory:
-- Make commits independently
-- Create branches
-- Push/pull changes
-- All standard git operations
-
-### 3.5 Resuming a Task from Fresh Clone
-
-**Scenario:** You've cloned the workarea repository on a new machine or after cleanup.
+### First Time Setup
 
 ```bash
 # 1. Clone the workarea repository
-git clone https://github.com/mfateev/workarea.git
+git clone https://github.com/user/workarea.git
 cd workarea
 
-# 2. List available tasks
-ls tasks/
+# 2. Create your first workspace
+/new-workspace personal "My personal projects"
 
-# 3. Read task documentation
-cat tasks/async-await/TASK_STATUS.md
-cat tasks/async-await/task.json
+# 3. Navigate to your workspace
+cd workspaces/personal
 
-# 4. Restore the task workspace (sets up repos and worktrees)
-/resume-task async-await
-# Or use the script directly:
-./bin/resume-task.sh async-await
-
-# 5. Start working
-cd tasks/async-await/sdk-java
-git status
+# 4. Create your first task
+/new-task https://github.com/org/repo/pull/123
+# Or: /new-task Implement new feature
 ```
 
-The `resume-task.sh` script:
-- Reads `task.json` configuration
-- Clones required repositories (if not present)
-- Adds fork remotes automatically
-- Creates worktrees on correct branches
-- Sets up tracking branches
+### Returning User
 
-**Result:** Identical workspace to the original, ready to continue work!
+```bash
+cd workarea
+/workarea-tasks          # Shows available workspaces
+cd workspaces/<name>
+/workarea-tasks          # Shows tasks in this workspace
+/resume-task <task>      # Resume a task
+```
 
-### 4. Task Metadata and Documentation
+## Workflow
 
-**IMPORTANT:** Each task directory contains two critical files:
+### 1. Create a Workspace (One-Time)
 
-#### `task.json` - Machine-Readable Configuration
-Automatically generated by the setup script, contains:
-- Task name and creation date
-- PR URL and number (if applicable)
-- List of repositories with their:
-  - Upstream URL
-  - Fork URL (your personal fork)
-  - Branch name
-  - Remote tracking information
+```bash
+/new-workspace <name> [description]
+```
 
-**Purpose:** Allows complete task restoration from a fresh workarea clone.
+Examples:
+```bash
+/new-workspace personal "Personal open source projects"
+/new-workspace work "Work-related tasks and PRs"
+/new-workspace temporal "Temporal SDK development"
+```
 
-**Example:**
+This creates:
+```
+workspaces/<name>/
+├── bin -> ../../bin     # Symlink to shared scripts
+├── tasks/               # Your tasks go here
+├── archived/            # Completed tasks
+└── README.md
+```
+
+### 2. Create a Task
+
+Navigate to your workspace first:
+```bash
+cd workspaces/<name>
+```
+
+Then create a task:
+```bash
+# With PR URL (recommended)
+/new-task https://github.com/org/repo/pull/123
+
+# Or with description
+/new-task Implement user authentication
+```
+
+Claude will:
+1. Parse the PR or task description
+2. Set up repository worktrees
+3. Generate `task.json` configuration
+4. Create `TASK_STATUS.md` template
+5. Navigate to the task directory
+
+### 3. Work on a Task
+
+```bash
+cd workspaces/<workspace>/tasks/<task>/<repo>
+# Make changes
+git add .
+git commit -m "Implement feature"
+git push <fork-remote> <branch>
+```
+
+### 4. Resume a Task
+
+If worktrees need to be restored (e.g., on a new machine):
+
+```bash
+cd workspaces/<workspace>
+/resume-task <task-name>
+```
+
+### 5. Archive Completed Tasks
+
+When a task is complete:
+
+1. Remove git worktrees from the task folder
+2. Move task folder to `archived/`
+3. Update `archived/README.md` with task entry
+4. Commit and push changes
+
+## Task Files
+
+### `task.json` - Machine Configuration
+
+Automatically generated, contains everything needed to restore the task:
+
 ```json
 {
   "task_name": "async-await",
   "created": "2026-01-06T14:47:00Z",
-  "pr_url": "https://github.com/temporalio/sdk-java/pull/2751",
-  "pr_number": 2751,
+  "pr_url": "https://github.com/org/repo/pull/123",
+  "pr_number": 123,
   "repositories": [
     {
-      "name": "sdk-java",
-      "upstream_url": "https://github.com/temporalio/sdk-java.git",
-      "fork_url": "https://github.com/mfateev/temporal-java-sdk.git",
-      "branch": "async-await",
-      "fork_owner": "mfateev",
-      "tracking_remote": "mfateev",
-      "tracking_branch": "async-await"
+      "name": "repo-name",
+      "upstream_url": "https://github.com/org/repo.git",
+      "fork_url": "https://github.com/user/repo.git",
+      "branch": "feature-branch",
+      "fork_owner": "user",
+      "tracking_remote": "user",
+      "tracking_branch": "feature-branch"
     }
   ]
 }
 ```
 
-#### `TASK_STATUS.md` - Human-Readable Documentation
-Manually maintained, tracks:
-- Task overview and PR/issue links
-- Current status and progress
-- CI/test failures and analysis
-- Investigation findings
-- Next steps and resolution strategy
-- Key file paths and commands
-- Enough context for a fresh Claude session to continue
+### `TASK_STATUS.md` - Human Context
 
-**Location:** `tasks/<task-name>/TASK_STATUS.md`
+Manually maintained, tracks progress and context for continuity:
 
-**Purpose:** Provides human context and investigation notes for continuity across sessions.
-
-**When to update:**
-- After initial task setup
-- When discovering important findings
-- After CI check failures
-- Before/after significant code changes
-- When blocked or changing direction
-
-**IMPORTANT:** Always commit and push changes to `TASK_STATUS.md` immediately after updating. This ensures task progress is persisted and available across sessions and machines.
-
-**Example structure:**
 ```markdown
 # Task Status: [Task Name]
 
@@ -216,310 +197,128 @@ Manually maintained, tracks:
 - Summary of what needs to be done
 
 ## Current Status
-- Where you are in the investigation/implementation
-- What's been completed
+- Where you are
+- What's completed
 - What's pending
 
 ## CI/Test Status
 - Passing/failing checks
-- Specific error messages
 - Analysis of failures
 
-## Investigation Needed
-- Questions to answer
-- Files to examine
-- Tests to run
-
-## Commands Reference
-- Build/test commands
-- Git operations
-
-## Session Handoff Checklist
-- Steps for next session to continue
+## Next Steps
+- Actions to take
 ```
+
+**Always update and commit** `TASK_STATUS.md` after making progress.
 
 ## Repository Management
 
-### Main Repository Storage
+### Shared Repos Directory
 
-Repositories are cloned once into `repos/`:
+All repositories are cloned once to `repos/` at the workarea root:
+
 ```bash
 repos/
-├── frontend/     # Main repo
-├── backend/      # Main repo
-└── shared/       # Main repo
+├── sdk-java/     # Shared across all workspaces
+├── sdk-go/
+└── frontend/
 ```
 
 ### Git Worktrees
 
 Each task gets worktrees (linked working directories):
+
 ```bash
-tasks/auth-feature/
-├── frontend/     # Worktree on branch task/auth-feature
-└── backend/      # Worktree on branch task/auth-feature
+workspaces/personal/tasks/my-feature/
+├── sdk-java/     # Worktree linked to repos/sdk-java
+└── sdk-go/       # Worktree linked to repos/sdk-go
 ```
 
 Benefits:
 - Share git history and objects
 - Save disk space
-- Fast creation/deletion
-- Independent working states
+- Independent working states per task
 
-## Common Operations
+## Fork-Based Workflow (Required)
 
-### Start New Task
-```
-/new-task Add pagination to user list view
-```
+**Always use personal forks when contributing to upstream repositories.**
 
-### Check Task Status
-```bash
-cd tasks/my-task
-for dir in */; do
-  echo "=== $dir ==="
-  (cd "$dir" && git status -s)
-done
-```
-
-### Clean Up Completed Task
-```bash
-# Remove worktrees
-cd repos/repo-name
-git worktree remove ../../tasks/completed-task/repo-name
-
-# Remove task directory
-rm -rf tasks/completed-task
-```
-
-### Archive Completed Task (Preferred)
-
-Instead of deleting completed tasks, archive them for historical reference:
+### Setup
 
 ```bash
-# 1. Remove git worktrees (they contain repo data, not needed in archive)
-cd tasks/completed-task
-for dir in */; do
-  if [ -d "$dir/.git" ] || [ -f "$dir/.git" ]; then
-    repo_name=$(basename "$dir")
-    cd /Users/maxim/workarea/repos/$repo_name
-    git worktree remove "../../tasks/completed-task/$repo_name" 2>/dev/null || true
-    cd /Users/maxim/workarea/tasks/completed-task
-  fi
-done
+# Add fork as remote
+cd workspaces/<workspace>/tasks/<task>/<repo>
+git remote add <username> https://github.com/<username>/<fork>.git
 
-# 2. Move task folder to archived (only TASK_STATUS.md and task.json remain)
-mv /Users/maxim/workarea/tasks/completed-task /Users/maxim/workarea/archived/
+# Push to fork, not origin
+git push <username> <branch>
 
-# 3. Update archived/README.md with task entry
+# Create PR from fork
+gh pr create --repo <org>/<repo> --head <username>:<branch>
 ```
 
-**Claude MUST archive tasks (not delete) when they are completed:**
-1. Remove all git worktrees from the task folder
-2. Move the task folder to `archived/`
-3. Add entry to `archived/README.md` with:
-   - Task name and overview
-   - Start date (from task.json `created`)
-   - Completion date (current date)
-   - PR/Issue link
-4. Commit and push changes to workarea
+### Example
 
-### List All Worktrees
 ```bash
-cd repos/repo-name
-git worktree list
+# Working on temporalio/sdk-java, user is mfateev
+cd workspaces/temporal/tasks/feature/sdk-java
+
+# Add fork remote
+git remote add mfateev https://github.com/mfateev/temporal-java-sdk.git
+
+# Make changes and push to fork
+git add . && git commit -m "Implement feature"
+git push mfateev feature-branch
+
+# Create PR
+gh pr create --repo temporalio/sdk-java --head mfateev:feature-branch
 ```
 
 ## Best Practices
 
-1. **One Task = One Goal**: Keep tasks focused and atomic
-2. **Clean Branches**: Use descriptive task names (e.g., `fix-login-bug`, `add-dark-mode`)
-3. **Archive Completed Tasks**: Move completed tasks to `archived/` instead of deleting
-4. **Commit Often**: Each worktree maintains its own state
-5. **Push Early**: Push branches to back up your work
-6. **Persist Task Status**: Always commit and push changes to `TASK_STATUS.md` and `task.json` after updates
-7. **Use Forks**: Always push to personal forks and create PRs from them
-
-## Example Workflows
-
-### Working on a New Feature
-
-```bash
-# 1. Start new task
-/new-task Implement OAuth2 login flow
-
-# 2. Navigate to task
-cd tasks/implement-oauth2-login-flow
-
-# 3. Work in each repo
-cd frontend
-# ... make changes ...
-git add .
-git commit -m "Add OAuth2 login UI"
-
-cd ../backend
-# ... make changes ...
-git add .
-git commit -m "Implement OAuth2 endpoints"
-
-# 4. Push changes
-cd frontend && git push -u origin task/implement-oauth2-login-flow
-cd ../backend && git push -u origin task/implement-oauth2-login-flow
-
-# 5. Create PRs (manual or via gh CLI)
-gh pr create --title "Add OAuth2 login" --body "..."
-
-# 6. After merge, clean up
-cd ../..
-rm -rf tasks/implement-oauth2-login-flow
-cd repos/frontend && git worktree prune
-cd ../backend && git worktree prune
-```
-
-### Working on an Existing PR
-
-```bash
-# 1. Set up workspace with PR URL (automatic branch detection)
-./bin/setup-task-workspace.sh review-auth-pr \
-  https://github.com/org/repo/pull/2751
-
-# 2. Navigate to task
-cd tasks/review-auth-pr/repo
-
-# 3. Make changes, test, commit
-git status
-# ... make changes ...
-git add .
-git commit -m "Fix issue with authentication"
-
-# 4. Push changes
-git push
-
-# 5. Clean up after PR is merged
-cd ../..
-rm -rf tasks/review-auth-pr
-cd repos/repo && git worktree prune
-```
+1. **One Workspace Per Project Area**: Keep workspaces focused (e.g., "work", "personal", "sdk-dev")
+2. **One Task = One Goal**: Keep tasks atomic and focused
+3. **Update TASK_STATUS.md**: Always maintain context for continuity
+4. **Use Forks**: Never push directly to upstream repositories
+5. **Archive, Don't Delete**: Move completed tasks to `archived/` for history
 
 ## Troubleshooting
 
+### "Not in a workspace"
+
+Scripts require workspace context. Navigate to a workspace first:
+```bash
+cd workspaces/<name>
+```
+
 ### "worktree already exists"
+
 ```bash
-cd repos/repo-name
+cd repos/<repo-name>
 git worktree list
-git worktree remove path/to/worktree
+git worktree remove <path>
 ```
 
-### "branch already exists"
-```bash
-# Use existing branch
-./bin/setup-task-workspace.sh task-name -b existing-branch repo-url
+### List all worktrees
 
-# Or delete old branch
-git branch -D task/old-task-name
+```bash
+cd repos/<repo-name>
+git worktree list
 ```
 
-### Update main repositories
+### Update repositories
+
 ```bash
-cd repos/repo-name
+cd repos/<repo-name>
 git fetch --all
-git pull
 ```
 
-## Integration with Claude Code
+## Claude Code Integration
 
-Claude Code is aware of this structure and can:
-- Navigate task workspaces
+Claude understands this workspace structure and can:
+- Navigate between workspaces and tasks
 - Work across multiple repositories
-- Create commits in appropriate repos
-- Understand the relationship between tasks and code
+- Create commits and PRs following the fork workflow
+- Track progress via TASK_STATUS.md
 
-**Claude MUST always commit and push changes to task status files** (`TASK_STATUS.md`, `task.json`) in the workarea repository after making updates. This ensures continuity across sessions.
-
-When working with Claude, mention the task name and it will understand the context.
-
-## Fork-Based Workflow (Required)
-
-**IMPORTANT:** Always use personal forks when contributing to upstream repositories. Never push directly to upstream repositories.
-
-### Why Use Forks?
-- Avoids SAML SSO authentication issues with organization repos
-- Provides a personal backup of your work
-- Follows standard open-source contribution practices
-- Allows work even without direct push access to upstream
-
-### Setting Up Fork Workflow
-
-1. **Create or identify your fork:**
-   ```bash
-   # Check if fork exists
-   gh repo view <username>/<repo-name> 2>/dev/null || gh repo fork <org>/<repo> --clone=false
-   ```
-
-2. **Add fork as remote:**
-   ```bash
-   cd tasks/<task-name>/<repo>
-   git remote add <username> https://github.com/<username>/<fork-name>.git
-   ```
-
-3. **Push to fork (not origin):**
-   ```bash
-   git push <username> <branch-name>
-   ```
-
-4. **Create PR from fork:**
-   ```bash
-   gh pr create --repo <org>/<repo> --head <username>:<branch> --base <main-branch>
-   ```
-
-### Example: Complete Fork Workflow
-
-```bash
-# 1. Working on temporalio/sdk-go, user is mfateev
-cd tasks/my-feature/sdk-go
-
-# 2. Fork exists as mfateev/temporal-go-sdk (note: fork names may differ)
-git remote add mfateev https://github.com/mfateev/temporal-go-sdk.git
-
-# 3. Make changes and commit
-git add .
-git commit -m "Implement feature"
-
-# 4. Push to YOUR fork, not origin
-git push mfateev task/my-feature
-
-# 5. Create PR from fork to upstream
-gh pr create --repo temporalio/sdk-go --head mfateev:task/my-feature --base master
-```
-
-### Claude Instructions for PRs
-
-**Claude MUST follow this workflow when creating PRs:**
-1. Identify or create user's fork of the repository
-2. Add fork as a named remote (use GitHub username)
-3. Push branch to fork remote, NOT to origin
-4. Create PR using `gh pr create` with `--head <user>:<branch>` syntax
-5. Sync fork with upstream if needed: `gh repo sync <user>/<fork> --source <org>/<repo>`
-
-### Checking PR Status
-
-**When checking PR status, Claude MUST verify:**
-1. CI check results: `gh pr checks <pr-number> --repo <org>/<repo>`
-2. Branch freshness - check if branch is up to date with base:
-   ```bash
-   # Check if PR branch is behind base branch
-   gh pr view <pr-number> --repo <org>/<repo> --json mergeStateStatus,mergeable
-   ```
-3. If branch is out of date, notify user and offer to rebase:
-   ```bash
-   # Update branch with base (from worktree)
-   git fetch origin <base-branch>
-   git rebase origin/<base-branch>
-   git push <fork-remote> <branch> --force-with-lease
-   ```
-
-**Merge state values:**
-- `BEHIND` - Branch is out of date with base, needs rebase/merge
-- `BLOCKED` - Cannot merge due to branch protection rules
-- `CLEAN` - Ready to merge
-- `DIRTY` - Merge conflicts exist
-- `UNKNOWN` - State cannot be determined
+**Start every session with `/workarea-tasks`** to see available workspaces and tasks.

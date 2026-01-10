@@ -2,6 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(./bin/setup-task-workspace.sh:*)",
+      "Bash(./bin/new-workspace.sh:*)",
+      "Bash(./bin/migrate-to-workspaces.sh:*)",
+      "Bash(./bin/resume-task.sh:*)",
+      "Bash(./bin/list-tasks.sh:*)",
       "Bash(git worktree:*)",
       "Bash(git fetch:*)",
       "Bash(git remote add:*)",
@@ -13,7 +17,6 @@
       "Bash(git commit:*)",
       "Bash(gh repo view:*)",
       "Bash(chmod:*)",
-      "Bash(./bin/list-tasks.sh:*)",
       "./gradlew runIdeForUiTests & sleep 3"
     ]
   },

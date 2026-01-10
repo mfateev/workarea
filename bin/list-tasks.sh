@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # List all tasks with their status
-# Can be run standalone or called by /tasks command
+# Can be run standalone or called by /workarea-tasks command
+#
+# Behavior:
+# - If run from within a workspace: lists tasks for that workspace
+# - If run from workarea root or elsewhere: lists available workspaces
 
 # Colors
 RED='\033[0;31m'
@@ -10,14 +14,173 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Get script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKAREA_DIR="$(dirname "$SCRIPT_DIR")"
-TASKS_DIR="${WORKAREA_DIR}/tasks"
+# =============================================================================
+# Helper Functions
+# =============================================================================
+
+# Resolve the true workarea root (handles symlinks)
+resolve_workarea_root() {
+    local script_path="${BASH_SOURCE[0]}"
+    local script_dir="$(dirname "$script_path")"
+
+    # Check if the bin directory itself is a symlink (e.g., when called from workspace)
+    # This handles the case where workspace/bin -> ../../bin
+    if [ -L "$script_dir" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS: resolve the symlink manually
+            local link_dir="$(cd "$(dirname "$script_dir")" && pwd)"
+            local link_target="$(readlink "$script_dir")"
+            if [[ "$link_target" == /* ]]; then
+                script_dir="$link_target"
+            else
+                script_dir="$link_dir/$link_target"
+            fi
+        else
+            script_dir="$(readlink -f "$script_dir")"
+        fi
+    fi
+
+    # If the script file itself is a symlink, resolve it
+    if [ -L "$script_path" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            local link_dir="$(cd "$(dirname "$script_path")" && pwd)"
+            local link_target="$(readlink "$script_path")"
+            if [[ "$link_target" == /* ]]; then
+                script_path="$link_target"
+            else
+                script_path="$link_dir/$link_target"
+            fi
+            script_dir="$(dirname "$script_path")"
+        else
+            script_path="$(readlink -f "$script_path")"
+            script_dir="$(dirname "$script_path")"
+        fi
+    fi
+
+    # Resolve to absolute path
+    script_dir="$(cd "$script_dir" && pwd -P)"
+    dirname "$script_dir"
+}
+
+# Detect current workspace from cwd
+# Returns workspace path if in a workspace, empty string if not
+detect_current_workspace() {
+    local workarea_root="$1"
+    local cwd="$(pwd)"
+    local workspaces_dir="$workarea_root/workspaces"
+
+    # Check if we're inside workspaces/
+    if [[ "$cwd" == "$workspaces_dir/"* ]]; then
+        # Extract workspace name (first component after workspaces/)
+        local rel_path="${cwd#$workspaces_dir/}"
+        local workspace_name="${rel_path%%/*}"
+
+        if [ -d "$workspaces_dir/$workspace_name" ]; then
+            echo "$workspaces_dir/$workspace_name"
+            return 0
+        fi
+    fi
+
+    # Legacy support: check if we're in old tasks/ structure (at root)
+    if [ -d "$workarea_root/tasks" ] && [[ "$cwd" == "$workarea_root/tasks"* || "$cwd" == "$workarea_root" ]]; then
+        # Return workarea root as pseudo-workspace for legacy mode
+        echo "$workarea_root"
+        return 0
+    fi
+
+    return 1
+}
+
+# =============================================================================
+# Main Script
+# =============================================================================
+
+WORKAREA_ROOT="$(resolve_workarea_root)"
+REPOS_DIR="${WORKAREA_ROOT}/repos"
+WORKSPACES_DIR="${WORKAREA_ROOT}/workspaces"
+
+# Try to detect workspace context
+WORKSPACE_DIR=""
+TASKS_DIR=""
+
+if WORKSPACE_DIR=$(detect_current_workspace "$WORKAREA_ROOT"); then
+    if [ "$WORKSPACE_DIR" = "$WORKAREA_ROOT" ]; then
+        # Legacy mode - tasks at root level
+        TASKS_DIR="${WORKAREA_ROOT}/tasks"
+    else
+        TASKS_DIR="${WORKSPACE_DIR}/tasks"
+    fi
+else
+    # Not in a workspace - show available workspaces
+    echo -e "${GREEN}=== Available Workspaces ===${NC}"
+    echo ""
+
+    if [ -d "$WORKSPACES_DIR" ]; then
+        shopt -s nullglob
+        WORKSPACE_DIRS=("$WORKSPACES_DIR"/*/)
+        shopt -u nullglob
+
+        if [ ${#WORKSPACE_DIRS[@]} -eq 0 ]; then
+            echo -e "${YELLOW}No workspaces found.${NC}"
+            echo ""
+            echo "Create your first workspace:"
+            echo -e "  ${BLUE}/new-workspace <name>${NC}"
+            echo ""
+            echo "Example:"
+            echo "  /new-workspace personal"
+            echo "  /new-workspace work"
+        else
+            WS_NUM=0
+            for ws_path in "${WORKSPACE_DIRS[@]}"; do
+                ws_name=$(basename "$ws_path")
+                WS_NUM=$((WS_NUM + 1))
+
+                # Count tasks
+                task_count=0
+                if [ -d "$ws_path/tasks" ]; then
+                    shopt -s nullglob
+                    task_dirs=("$ws_path/tasks"/*/)
+                    shopt -u nullglob
+                    task_count=${#task_dirs[@]}
+                fi
+
+                # Get workspace description from README if available
+                description=""
+                if [ -f "$ws_path/README.md" ]; then
+                    # Get first non-empty line after the title
+                    description=$(grep -v "^#" "$ws_path/README.md" | grep -v "^$" | head -1 | cut -c1-50)
+                fi
+
+                echo -e "${BLUE}${WS_NUM}.${NC} ${ws_name}"
+                echo "   ${task_count} task(s)"
+                if [ -n "$description" ]; then
+                    echo "   ${description}"
+                fi
+                echo ""
+            done
+
+            echo -e "${GREEN}Commands:${NC}"
+            echo "  cd workspaces/<name>      - Navigate to a workspace"
+            echo "  /new-workspace <name>     - Create a new workspace"
+            echo ""
+            echo -e "To see tasks: ${BLUE}cd workspaces/<name>${NC} then ${BLUE}/workarea-tasks${NC}"
+        fi
+    else
+        echo -e "${YELLOW}Workspaces directory not found.${NC}"
+        echo ""
+        echo "Create your first workspace:"
+        echo "  /new-workspace <name>"
+    fi
+    exit 0
+fi
+
+# =============================================================================
+# List Tasks (when in a workspace)
+# =============================================================================
 
 # Check if tasks directory exists
 if [ ! -d "$TASKS_DIR" ]; then
-    echo -e "${YELLOW}No tasks directory found.${NC}"
+    echo -e "${YELLOW}No tasks directory found in this workspace.${NC}"
     echo "Create your first task with: /new-task <description>"
     exit 0
 fi
@@ -28,7 +191,12 @@ TASK_DIRS=("$TASKS_DIR"/*)
 shopt -u nullglob
 
 if [ ${#TASK_DIRS[@]} -eq 0 ]; then
-    echo -e "${YELLOW}No tasks found.${NC}"
+    WORKSPACE_NAME=""
+    if [ "$WORKSPACE_DIR" != "$WORKAREA_ROOT" ]; then
+        WORKSPACE_NAME=$(basename "$WORKSPACE_DIR")
+    fi
+
+    echo -e "${YELLOW}No tasks found${NC}${WORKSPACE_NAME:+ in workspace '$WORKSPACE_NAME'}."
     echo ""
     echo "Start a new task:"
     echo "  /new-task <description or PR URL>"
@@ -38,7 +206,13 @@ if [ ${#TASK_DIRS[@]} -eq 0 ]; then
     exit 0
 fi
 
-echo -e "${GREEN}=== Available Tasks ===${NC}"
+# Show workspace context if not legacy
+if [ "$WORKSPACE_DIR" != "$WORKAREA_ROOT" ]; then
+    WORKSPACE_NAME=$(basename "$WORKSPACE_DIR")
+    echo -e "${GREEN}=== Tasks in workspace: ${WORKSPACE_NAME} ===${NC}"
+else
+    echo -e "${GREEN}=== Available Tasks ===${NC}"
+fi
 echo ""
 
 # Counter for numbering
@@ -46,6 +220,9 @@ TASK_NUM=0
 
 # Iterate through tasks
 for TASK_PATH in "${TASK_DIRS[@]}"; do
+    # Skip if not a directory
+    [ ! -d "$TASK_PATH" ] && continue
+
     TASK_NAME=$(basename "$TASK_PATH")
     TASK_NUM=$((TASK_NUM + 1))
 

@@ -2,6 +2,9 @@
 
 # Script to setup a task workspace with git worktrees
 # Usage: setup-task-workspace.sh <task-name> <repo-url-1> [repo-url-2] ...
+#
+# IMPORTANT: Must be run from within a workspace (workspaces/<name>/).
+# Repos are shared at workarea root. Tasks are created in the current workspace.
 
 set -e
 
@@ -9,13 +12,125 @@ set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# =============================================================================
+# Helper Functions
+# =============================================================================
+
+# Resolve the true workarea root (handles symlinks)
+resolve_workarea_root() {
+    local script_path="${BASH_SOURCE[0]}"
+    local script_dir="$(dirname "$script_path")"
+
+    # Check if the bin directory itself is a symlink (e.g., when called from workspace)
+    # This handles the case where workspace/bin -> ../../bin
+    if [ -L "$script_dir" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS: resolve the symlink manually
+            local link_dir="$(cd "$(dirname "$script_dir")" && pwd)"
+            local link_target="$(readlink "$script_dir")"
+            if [[ "$link_target" == /* ]]; then
+                script_dir="$link_target"
+            else
+                script_dir="$link_dir/$link_target"
+            fi
+        else
+            script_dir="$(readlink -f "$script_dir")"
+        fi
+    fi
+
+    # If the script file itself is a symlink, resolve it
+    if [ -L "$script_path" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            local link_dir="$(cd "$(dirname "$script_path")" && pwd)"
+            local link_target="$(readlink "$script_path")"
+            if [[ "$link_target" == /* ]]; then
+                script_path="$link_target"
+            else
+                script_path="$link_dir/$link_target"
+            fi
+            script_dir="$(dirname "$script_path")"
+        else
+            script_path="$(readlink -f "$script_path")"
+            script_dir="$(dirname "$script_path")"
+        fi
+    fi
+
+    # Resolve to absolute path
+    script_dir="$(cd "$script_dir" && pwd -P)"
+    dirname "$script_dir"
+}
+
+# Detect current workspace from cwd
+# Returns workspace path if in a workspace, empty string if not
+detect_current_workspace() {
+    local workarea_root="$1"
+    local cwd="$(pwd)"
+    local workspaces_dir="$workarea_root/workspaces"
+
+    # Check if we're inside workspaces/
+    if [[ "$cwd" == "$workspaces_dir/"* ]]; then
+        # Extract workspace name (first component after workspaces/)
+        local rel_path="${cwd#$workspaces_dir/}"
+        local workspace_name="${rel_path%%/*}"
+
+        if [ -d "$workspaces_dir/$workspace_name" ]; then
+            echo "$workspaces_dir/$workspace_name"
+            return 0
+        fi
+    fi
+
+    # Legacy support: check if we're in old tasks/ structure (at root)
+    if [ -d "$workarea_root/tasks" ] && [[ "$cwd" == "$workarea_root/tasks"* || "$cwd" == "$workarea_root" ]]; then
+        # Return workarea root as pseudo-workspace for legacy mode
+        echo "$workarea_root"
+        return 0
+    fi
+
+    return 1
+}
+
+# =============================================================================
 # Configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKAREA_DIR="$(dirname "$SCRIPT_DIR")"
-REPOS_DIR="${WORKAREA_DIR}/repos"
-TASKS_DIR="${WORKAREA_DIR}/tasks"
+# =============================================================================
+
+WORKAREA_ROOT="$(resolve_workarea_root)"
+REPOS_DIR="${WORKAREA_ROOT}/repos"  # Always shared at workarea root
+WORKSPACES_DIR="${WORKAREA_ROOT}/workspaces"
+
+# Detect workspace context
+WORKSPACE_DIR=""
+TASKS_DIR=""
+
+if WORKSPACE_DIR=$(detect_current_workspace "$WORKAREA_ROOT"); then
+    if [ "$WORKSPACE_DIR" = "$WORKAREA_ROOT" ]; then
+        # Legacy mode - tasks at root level
+        TASKS_DIR="${WORKAREA_ROOT}/tasks"
+    else
+        TASKS_DIR="${WORKSPACE_DIR}/tasks"
+    fi
+else
+    # Not in a workspace - show error
+    echo -e "${RED}Error: Not in a workspace.${NC}"
+    echo ""
+    echo "This script must be run from within a workspace."
+    echo ""
+    echo "Navigate to a workspace first:"
+    echo -e "  ${BLUE}cd workspaces/<workspace-name>${NC}"
+    echo ""
+    echo "Or create a new workspace:"
+    echo -e "  ${BLUE}/new-workspace <name>${NC}"
+    echo ""
+    if [ -d "$WORKSPACES_DIR" ]; then
+        echo "Available workspaces:"
+        for ws in "$WORKSPACES_DIR"/*/; do
+            [ -d "$ws" ] && echo "  - $(basename "$ws")"
+        done
+    fi
+    exit 1
+fi
 
 # Print usage
 usage() {

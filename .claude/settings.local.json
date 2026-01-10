@@ -62,7 +62,10 @@
       "Bash(pgrep:*)",
       "Bash(./scripts/run-ui-tests.sh:*)",
       "WebFetch(domain:docs.temporal.io)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__filesystem__write_file",
+      "Bash(./bin/migrate-to-workspaces.sh:*)",
+      "Bash(bash:*)"
     ]
   }
 }

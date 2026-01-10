@@ -2,6 +2,8 @@
 
 Set up a new task workspace with git worktrees for multiple repositories.
 
+**IMPORTANT:** Must be run from within a workspace (`workspaces/<name>/`).
+
 ## Usage
 
 ```
@@ -11,6 +13,9 @@ Set up a new task workspace with git worktrees for multiple repositories.
 ## Examples
 
 ```
+# First, navigate to a workspace
+cd workspaces/personal
+
 # New feature tasks
 /new-task Implement user authentication with JWT tokens
 /new-task Fix pagination bug in admin dashboard
@@ -24,7 +29,21 @@ Set up a new task workspace with git worktrees for multiple repositories.
 
 When this command is invoked:
 
-1. **Detect input type**
+### 0. Verify workspace context (REQUIRED)
+
+Check if currently in a workspace (`workspaces/<name>/`).
+
+**If NOT in a workspace:**
+- Show available workspaces
+- Ask: "Which workspace should this task be created in?"
+- Options: [list workspaces] + "Create new workspace"
+- Navigate to selected workspace before proceeding
+- Run `/new-workspace` if user wants to create one first
+
+**If in a workspace:**
+- Proceed to step 1
+
+### 1. Detect input type
    - Check if the input is a GitHub PR URL (matches `https://github.com/.*/pull/[0-9]+`)
    - If PR URL: Skip to step 3 (PR mode)
    - If task description: Continue to step 2 (New task mode)
