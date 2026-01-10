@@ -62,9 +62,9 @@ Commands:
 ```
 === Tasks in workspace: default ===
 
-1. 🔴 async-await
-   PR #2751
-   Add Async.await() for non-blocking...
+1. 🔴 my-feature
+   PR #123
+   Implement new feature...
    Status: CI Failing | Last updated: 1h ago
 
 2. 🟡 feature-auth
@@ -132,9 +132,9 @@ cd workspaces/default
 
 === Tasks in workspace: default ===
 
-1. 🔴 async-await
-   PR #2751
-   Add Async.await() for non-blocking...
+1. 🔴 my-feature
+   PR #123
+   Implement new feature...
    Status: CI Failing | Last updated: 1h ago
 
 2. 🟡 feature-auth
@@ -152,22 +152,22 @@ Claude: [Runs ./bin/list-tasks.sh from workspaces/default]
 
 === Tasks in workspace: default ===
 
-1. 🔴 async-await
-   PR #2751
-   Add Async.await() for non-blocking...
+1. 🔴 my-feature
+   PR #123
+   Implement new feature...
    Status: CI Failing | Last updated: 1h ago
 
 Which task would you like to work on?
 
 Options:
-1. async-await (🔴 CI Failing - needs attention)
+1. my-feature (🔴 CI Failing - needs attention)
 2. Create new task
 3. Skip (just browsing)
 
 User: 1
 
-Claude: Resuming task: async-await
-[Executes /resume-task async-await]
+Claude: Resuming task: my-feature
+[Executes /resume-task my-feature]
 ```
 
 ### Example 3: No Workspaces Found

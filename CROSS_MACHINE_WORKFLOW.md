@@ -18,7 +18,7 @@ The workarea repository tracks task metadata (not actual code) allowing you to:
 - ❌ Actual code repositories (in `repos/`)
 - ❌ Git worktrees (in `tasks/*/`)
 
-**Assumption:** All code changes are pushed to your personal forks (e.g., `mfateev/repo`)
+**Assumption:** All code changes are pushed to your personal forks (e.g., `<username>/repo`)
 
 ## Complete Workflow Example
 
@@ -26,28 +26,28 @@ The workarea repository tracks task metadata (not actual code) allowing you to:
 
 ```bash
 # 1. Navigate to workarea
-cd /Users/maxim/ai/workarea
+cd /path/to/workarea
 
 # 2. Start working on a PR
-/new-task https://github.com/temporalio/sdk-java/pull/2751
+/new-task https://github.com/org/repo/pull/123
 
 # Or use the script directly
-./bin/setup-task-workspace.sh async-await https://github.com/temporalio/sdk-java/pull/2751
+./bin/setup-task-workspace.sh my-feature https://github.com/org/repo/pull/123
 
 # This creates:
-# - repos/sdk-java/ (clone)
-# - tasks/async-await/sdk-java/ (worktree)
-# - tasks/async-await/task.json (config - tracked in git)
-# - tasks/async-await/TASK_STATUS.md (docs - tracked in git)
+# - repos/repo/ (clone)
+# - tasks/my-feature/repo/ (worktree)
+# - tasks/my-feature/task.json (config - tracked in git)
+# - tasks/my-feature/TASK_STATUS.md (docs - tracked in git)
 
 # 3. Work on the task
-cd tasks/async-await/sdk-java
+cd tasks/my-feature/repo
 # ... investigate, make changes ...
 
 # 4. Push changes to YOUR FORK
 git add .
 git commit -m "Fix metrics test issue"
-git push  # Pushes to mfateev/temporal-java-sdk fork
+git push  # Pushes to <username>/fork-repo fork
 
 # 5. Update task status
 cd ..
@@ -56,43 +56,43 @@ vim TASK_STATUS.md
 
 # 6. Commit documentation to workarea repo
 cd ../..  # Back to workarea root
-git add tasks/async-await/TASK_STATUS.md
-git commit -m "Update async-await: analyzed metrics test failure"
-git push  # Pushes to mfateev/workarea
+git add tasks/my-feature/TASK_STATUS.md
+git commit -m "Update my-feature: analyzed metrics test failure"
+git push  # Pushes to <username>/workarea
 ```
 
 ### Machine B: Continue Same Task
 
 ```bash
 # 1. Clone workarea (if not already done)
-git clone https://github.com/mfateev/workarea.git
+git clone https://github.com/<username>/workarea.git
 cd workarea
 
 # 2. See available tasks
 ls tasks/
-# Output: async-await
+# Output: my-feature
 
 # 3. Read task status to understand current progress
-cat tasks/async-await/TASK_STATUS.md
+cat tasks/my-feature/TASK_STATUS.md
 # Shows: investigation notes, CI failures, what was discovered
 
-cat tasks/async-await/task.json
+cat tasks/my-feature/task.json
 # Shows: repo URLs, branch names, fork configuration
 
 # 4. Restore the complete task workspace
-./bin/resume-task.sh async-await
+./bin/resume-task.sh my-feature
 
 # This automatically:
-# - Clones temporalio/sdk-java to repos/sdk-java
-# - Adds mfateev remote pointing to your fork
-# - Fetches mfateev/async-await branch
-# - Creates worktree at tasks/async-await/sdk-java
+# - Clones org/repo to repos/repo
+# - Adds <username> remote pointing to your fork
+# - Fetches <username>/my-feature branch
+# - Creates worktree at tasks/my-feature/repo
 # - Checks out the correct branch
-# - Sets up tracking to mfateev/async-await
+# - Sets up tracking to <username>/my-feature
 
 # 5. Start working immediately
-cd tasks/async-await/sdk-java
-git status  # Shows you're on async-await branch, tracking mfateev remote
+cd tasks/my-feature/repo
+git status  # Shows you're on my-feature branch, tracking <username> remote
 git pull    # Gets latest changes from your fork
 
 # 6. Continue work
@@ -101,7 +101,7 @@ git pull    # Gets latest changes from your fork
 # 7. Push changes back to YOUR FORK
 git add .
 git commit -m "Implement fix for metrics test"
-git push  # Pushes to mfateev/temporal-java-sdk
+git push  # Pushes to <username>/fork-repo
 
 # 8. Update task status with progress
 cd ..
@@ -110,8 +110,8 @@ vim TASK_STATUS.md
 
 # 9. Commit documentation
 cd ../..
-git add tasks/async-await/TASK_STATUS.md
-git commit -m "Update async-await: implemented metrics test fix"
+git add tasks/my-feature/TASK_STATUS.md
+git commit -m "Update my-feature: implemented metrics test fix"
 git push
 ```
 
@@ -119,18 +119,18 @@ git push
 
 ```bash
 # 1. Navigate to workarea
-cd /Users/maxim/ai/workarea
+cd /path/to/workarea
 
 # 2. Pull latest task documentation
 git pull
 # Gets updated TASK_STATUS.md from Machine B
 
 # 3. Read what was done on Machine B
-cat tasks/async-await/TASK_STATUS.md
+cat tasks/my-feature/TASK_STATUS.md
 
 # 4. Pull code changes in the worktree
-cd tasks/async-await/sdk-java
-git pull  # Gets changes from mfateev/temporal-java-sdk fork
+cd tasks/my-feature/repo
+git pull  # Gets changes from <username>/fork-repo fork
 
 # 5. Continue working or verify the fix
 # ... test, review, finalize ...
@@ -144,8 +144,8 @@ vim TASK_STATUS.md
 # ... mark as resolved, document final state ...
 
 cd ../..
-git add tasks/async-await/TASK_STATUS.md
-git commit -m "Mark async-await as completed"
+git add tasks/my-feature/TASK_STATUS.md
+git commit -m "Mark my-feature as completed"
 git push
 ```
 
@@ -153,16 +153,16 @@ git push
 
 ### Code Changes (via YOUR fork)
 ```
-Machine A → push → github.com/mfateev/temporal-java-sdk
+Machine A → push → github.com/<username>/fork-repo
          ↓
-Machine B ← pull ← github.com/mfateev/temporal-java-sdk
+Machine B ← pull ← github.com/<username>/fork-repo
 ```
 
 ### Documentation (via workarea repo)
 ```
-Machine A → push → github.com/mfateev/workarea
+Machine A → push → github.com/<username>/workarea
          ↓
-Machine B ← pull ← github.com/mfateev/workarea
+Machine B ← pull ← github.com/<username>/workarea
 ```
 
 ## Benefits
@@ -186,7 +186,7 @@ Machine B ← pull ← github.com/mfateev/workarea
 
 ```bash
 # On fresh machine
-git clone https://github.com/mfateev/workarea.git
+git clone https://github.com/<username>/workarea.git
 cd workarea
 ./bin/resume-task.sh <task-name>
 
@@ -225,7 +225,7 @@ git commit -m "Remove completed task: <task-name>"
 git push
 
 # 4. (Optional) Clean up your fork branch
-git push mfateev --delete <branch-name>
+git push <username> --delete <branch-name>
 ```
 
 ## Troubleshooting
@@ -246,8 +246,8 @@ git branch -a  # See all branches
 ### "Fork remote not found"
 ```bash
 cd repos/<repo>
-git remote add mfateev https://github.com/mfateev/<repo>.git
-git fetch mfateev
+git remote add <username> https://github.com/<username>/<repo>.git
+git fetch <username>
 ```
 
 ---

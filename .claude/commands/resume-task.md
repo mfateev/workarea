@@ -17,7 +17,7 @@ Restore a task workspace from its saved configuration.
 cd workspaces/default
 
 # Then resume a task
-/resume-task async-await
+/resume-task my-feature
 /resume-task feature-authentication
 /resume-task fix-pagination
 ```
@@ -96,26 +96,26 @@ Check if currently in a workspace (`workspaces/<name>/`).
 ## Example Interaction
 
 ```
-User: /resume-task async-await
+User: /resume-task my-feature
 
-Claude: I'll restore the task workspace for "async-await"
+Claude: I'll restore the task workspace for "my-feature"
 
 Reading task configuration...
 
 Task Information:
-  Name: async-await
-  Description: Add Async.await() for non-blocking condition waiting
-  PR: https://github.com/temporalio/sdk-java/pull/2751
+  Name: my-feature
+  Description: Implement new feature
+  PR: https://github.com/org/repo/pull/123
   Created: 2026-01-06T14:47:00Z
   Repositories: 1
-    - sdk-java (branch: async-await, fork: mfateev)
+    - repo (branch: my-feature, fork: <username>)
 
 Task Status Preview:
-  > # Task Status: Async.await() PR #2751
+  > # Task Status: Feature PR #123
   >
   > **Last Updated:** 2026-01-06
-  > **PR:** https://github.com/temporalio/sdk-java/pull/2751
-  > **Branch:** `async-await` (from fork: mfateev/temporal-java-sdk)
+  > **PR:** https://github.com/org/repo/pull/123
+  > **Branch:** `my-feature` (from fork: <username>/fork-repo)
   >
   > ## Current Status
   >
@@ -124,25 +124,25 @@ Task Status Preview:
   > - Unit test with in-memory test service [Edge]
   ...
 
-[Runs ./bin/resume-task.sh async-await]
+[Runs ./bin/resume-task.sh my-feature]
 
-✓ Repository cloned: repos/sdk-java
-✓ Fork remote added: mfateev
-✓ Branch fetched: mfateev/async-await
-✓ Worktree created: tasks/async-await/sdk-java
+✓ Repository cloned: repos/repo
+✓ Fork remote added: <username>
+✓ Branch fetched: <username>/my-feature
+✓ Worktree created: tasks/my-feature/repo
 
 Workspace restored successfully!
 
 Next steps:
-  1. Navigate to task: cd tasks/async-await/sdk-java
+  1. Navigate to task: cd tasks/my-feature/repo
   2. Check status: git status
   3. Pull latest changes: git pull
   4. Review task status: cat ../TASK_STATUS.md
 
-[Changes directory to tasks/async-await/sdk-java]
+[Changes directory to tasks/my-feature/repo]
 
-Current branch: async-await
-Tracking: mfateev/async-await
+Current branch: my-feature
+Tracking: <username>/my-feature
 Status: Ready to work!
 ```
 
@@ -155,7 +155,7 @@ User: /resume-task nonexistent-task
 Claude: Task "nonexistent-task" not found.
 
 Available tasks:
-  - async-await (PR #2751: Add Async.await() for non-blocking condition waiting)
+  - my-feature (PR #123: Implement new feature)
   - feature-auth (New feature: Implement user authentication)
 
 Use: /resume-task <task-name>
@@ -179,11 +179,11 @@ Options:
 Claude: Warning: Failed to clone repository from upstream.
 
 Attempting to clone from fork instead...
-✓ Cloned from fork: mfateev/sdk-java
+✓ Cloned from fork: <username>/repo
 
 Note: You may need to add the upstream remote manually:
-  cd repos/sdk-java
-  git remote add upstream https://github.com/temporalio/sdk-java.git
+  cd repos/repo
+  git remote add upstream https://github.com/org/repo.git
   git fetch upstream
 ```
 
@@ -197,7 +197,7 @@ Note: You may need to add the upstream remote manually:
 
 ### What Gets Restored
 - ✅ Repository clones (to `repos/`)
-- ✅ Fork remotes (e.g., `mfateev`)
+- ✅ Fork remotes (e.g., `<username>`)
 - ✅ Git worktrees (to `tasks/<name>/`)
 - ✅ Branch checkouts
 - ✅ Tracking branch setup
@@ -232,7 +232,7 @@ cd ../.. && git push  # Push task documentation
 
 **Machine B (resume):**
 ```bash
-git clone https://github.com/mfateev/workarea.git
+git clone https://github.com/<username>/workarea.git
 cd workarea
 /resume-task task-name  # ← This command
 git pull  # Get latest from your fork
@@ -258,22 +258,22 @@ Reads: `tasks/<task-name>/task.json`
 Example structure:
 ```json
 {
-  "task_name": "async-await",
+  "task_name": "my-feature",
   "created": "2026-01-06T14:47:00Z",
-  "pr_url": "https://github.com/temporalio/sdk-java/pull/2751",
-  "pr_number": 2751,
+  "pr_url": "https://github.com/org/repo/pull/123",
+  "pr_number": 123,
   "repositories": [
     {
-      "name": "sdk-java",
-      "upstream_url": "https://github.com/temporalio/sdk-java.git",
-      "fork_url": "https://github.com/mfateev/temporal-java-sdk.git",
-      "branch": "async-await",
-      "fork_owner": "mfateev",
-      "tracking_remote": "mfateev",
-      "tracking_branch": "async-await"
+      "name": "repo",
+      "upstream_url": "https://github.com/org/repo.git",
+      "fork_url": "https://github.com/<username>/fork-repo.git",
+      "branch": "my-feature",
+      "fork_owner": "<username>",
+      "tracking_remote": "<username>",
+      "tracking_branch": "my-feature"
     }
   ],
-  "description": "Add Async.await() for non-blocking condition waiting"
+  "description": "Implement new feature"
 }
 ```
 

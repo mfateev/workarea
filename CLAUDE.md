@@ -260,18 +260,18 @@ gh pr create --repo <org>/<repo> --head <username>:<branch>
 ### Example
 
 ```bash
-# Working on temporalio/sdk-java, user is mfateev
-cd workspaces/temporal/tasks/feature/sdk-java
+# Working on org/repo, user is <username>
+cd workspaces/myworkspace/tasks/feature/repo
 
 # Add fork remote
-git remote add mfateev https://github.com/mfateev/temporal-java-sdk.git
+git remote add <username> https://github.com/<username>/<fork-repo>.git
 
 # Make changes and push to fork
 git add . && git commit -m "Implement feature"
-git push mfateev feature-branch
+git push <username> feature-branch
 
 # Create PR
-gh pr create --repo temporalio/sdk-java --head mfateev:feature-branch
+gh pr create --repo <org>/<repo> --head <username>:feature-branch
 ```
 
 ## Best Practices

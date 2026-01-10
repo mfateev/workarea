@@ -1,14 +1,14 @@
-# Workspace Improvements - 2026-01-06
+# Workspace Improvements
 
 ## Summary
 
-Fixed critical bugs and added major features to the task workspace management system based on issues encountered during the initial PR #2751 setup.
+Fixed critical bugs and added major features to the task workspace management system.
 
 ## Problems Fixed
 
 ### 1. ❌ Path Bug in setup-task-workspace.sh
 
-**Problem:** Worktrees were created in the wrong location (`repos/sdk-java/tasks/async-await/sdk-java` instead of `tasks/async-await/sdk-java`)
+**Problem:** Worktrees were created in the wrong location (`repos/repo/tasks/my-feature/repo` instead of `tasks/my-feature/repo`)
 
 **Root Cause:** Script used relative paths when running `git worktree add` from inside the repos directory, causing paths to be resolved incorrectly.
 
@@ -44,7 +44,7 @@ TASKS_DIR="${WORKAREA_DIR}/tasks"
 
 ```bash
 # Now just one command:
-./bin/setup-task-workspace.sh async-await https://github.com/temporalio/sdk-java/pull/2751
+./bin/setup-task-workspace.sh my-feature https://github.com/org/repo/pull/123
 ```
 
 ## New Features
@@ -54,21 +54,21 @@ TASKS_DIR="${WORKAREA_DIR}/tasks"
 The setup script now accepts GitHub PR URLs directly and automatically:
 - Fetches PR details using `gh` CLI
 - Detects if PR is from a fork
-- Adds fork remote (e.g., `mfateev`)
+- Adds fork remote (e.g., `<username>`)
 - Fetches the correct branch
 - Creates worktree on the PR branch
 
 **Usage:**
 ```bash
 # Old way (multiple steps)
-git clone https://github.com/temporalio/sdk-java.git repos/sdk-java
-cd repos/sdk-java
-git remote add mfateev https://github.com/mfateev/temporal-java-sdk.git
-git fetch mfateev async-await
-git worktree add ../../tasks/async-await/sdk-java mfateev/async-await
+git clone https://github.com/org/repo.git repos/repo
+cd repos/repo
+git remote add <username> https://github.com/<username>/fork-repo.git
+git fetch <username> my-feature
+git worktree add ../../tasks/my-feature/repo <username>/my-feature
 
 # New way (one command)
-./bin/setup-task-workspace.sh async-await https://github.com/temporalio/sdk-java/pull/2751
+./bin/setup-task-workspace.sh my-feature https://github.com/org/repo/pull/123
 ```
 
 ### 2. ✅ Task Status Documentation
@@ -114,12 +114,12 @@ Updated the `/new-task` command to support both modes:
 ### Documentation
 - ✅ `CLAUDE.md` - Updated with PR URL examples and task status requirements
 - ✅ `.claude/commands/new-task.md` - Added PR mode instructions
-- ✅ `tasks/async-await/TASK_STATUS.md` - Created example task status document
+- ✅ `tasks/my-feature/TASK_STATUS.md` - Created example task status document
 
 ## Testing
 
 The improvements were validated by:
-1. Successfully setting up the async-await PR workspace with corrected paths
+1. Successfully setting up the my-feature PR workspace with corrected paths
 2. Verifying worktrees are created in correct locations
 3. Confirming fork remotes work properly
 4. Testing PR branch checkout

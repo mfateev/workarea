@@ -143,7 +143,7 @@ usage() {
     echo "  $0 feature-x https://github.com/user/repo1.git"
     echo ""
     echo "  # With PR URL (automatically fetches branch from fork if needed)"
-    echo "  $0 async-await https://github.com/temporalio/sdk-java/pull/2751"
+    echo "  $0 my-feature https://github.com/org/repo/pull/123"
     echo ""
     echo "  # Multiple repositories"
     echo "  $0 feature-x https://github.com/user/repo1.git https://github.com/user/repo2.git"

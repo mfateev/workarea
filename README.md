@@ -6,7 +6,7 @@ A structured workflow system for managing multi-repository development tasks usi
 
 This repository contains the infrastructure and documentation for organizing development work across multiple git repositories using a task-based approach with git worktrees.
 
-**Repository URL:** https://github.com/mfateev/workarea
+**Repository URL:** https://github.com/<username>/workarea
 
 ## Structure
 
@@ -63,7 +63,7 @@ Resume any task on any machine with full context:
 
 ```bash
 # Clone workarea repository
-git clone https://github.com/mfateev/workarea.git
+git clone https://github.com/<username>/workarea.git
 cd workarea
 
 # List available tasks
@@ -130,7 +130,7 @@ This shows all your active tasks with:
 
 1. **Clone this repository:**
    ```bash
-   git clone https://github.com/mfateev/workarea.git
+   git clone https://github.com/<username>/workarea.git
    cd workarea
    ```
 
@@ -164,7 +164,7 @@ This shows all your active tasks with:
 
 1. **Clone workarea (on new machine):**
    ```bash
-   git clone https://github.com/mfateev/workarea.git
+   git clone https://github.com/<username>/workarea.git
    cd workarea
    ```
 
@@ -213,10 +213,10 @@ This shows all your active tasks with:
 
 ```bash
 # 1. Start working on a PR
-/new-task https://github.com/temporalio/sdk-java/pull/2751
+/new-task https://github.com/org/repo/pull/123
 
 # 2. Navigate to task
-cd tasks/async-await/sdk-java
+cd tasks/my-feature/repo
 
 # 3. Investigate, make changes
 # ... work happens here ...
@@ -226,13 +226,13 @@ vim ../TASK_STATUS.md
 
 # 5. Commit and push changes
 git add .
-git commit -m "Fix metrics test issue"
+git commit -m "Implement feature"
 git push
 
 # 6. Document progress in workarea repo
 cd ../..  # Back to workarea root
-git add tasks/async-await/TASK_STATUS.md
-git commit -m "Update async-await task status"
+git add tasks/my-feature/TASK_STATUS.md
+git commit -m "Update task status"
 git push
 ```
 
@@ -246,6 +246,4 @@ Private repository for personal use.
 
 ---
 
-**Created:** 2026-01-06
-**Author:** Maxim Fateev
 **Purpose:** Efficient multi-repository task management with Claude Code

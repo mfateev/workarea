@@ -77,7 +77,7 @@ Structure:
 
 Next steps:
   cd workspaces/temporal
-  /new-task https://github.com/temporalio/sdk-java/pull/2751
+  /new-task https://github.com/org/repo/pull/123
 ```
 
 ## Notes

@@ -22,7 +22,7 @@ cd workspaces/personal
 /new-task Add dark mode support to frontend
 
 # Working on an existing PR (just pass the URL)
-/new-task https://github.com/temporalio/sdk-java/pull/2751
+/new-task https://github.com/org/repo/pull/123
 ```
 
 ## Instructions
@@ -152,33 +152,33 @@ You can now start working:
 ### Example 2: Existing PR (PR URL)
 
 ```
-User: /new-task https://github.com/temporalio/sdk-java/pull/2751
+User: /new-task https://github.com/org/repo/pull/123
 
-Claude: I'll fetch information about PR #2751 from temporalio/sdk-java...
+Claude: I'll fetch information about PR #123 from org/repo...
 
 [Fetches PR details]
 
-PR Title: Add Async.await() for non-blocking condition waiting
-Task name: async-await
-Branch: async-await (from fork: mfateev)
+PR Title: Add new feature
+Task name: add-new-feature
+Branch: feature-branch (from fork: <username>)
 
 Setting up workspace...
 
 [Runs script with PR URL - automatic branch detection]
 
-✓ Repository cloned: repos/sdk-java
-✓ Fork remote added: mfateev
-✓ Branch fetched: mfateev/async-await
-✓ Worktree created: tasks/async-await/sdk-java
+✓ Repository cloned: repos/repo
+✓ Fork remote added: <username>
+✓ Branch fetched: <username>/feature-branch
+✓ Worktree created: tasks/add-new-feature/repo
 
 Creating task status document...
-✓ Created: tasks/async-await/TASK_STATUS.md
+✓ Created: tasks/add-new-feature/TASK_STATUS.md
   - Includes PR details, CI status, and investigation plan
 
-Workspace ready at: tasks/async-await/sdk-java
+Workspace ready at: tasks/add-new-feature/repo
 
 You can now start working:
-  cd tasks/async-await/sdk-java
+  cd tasks/add-new-feature/repo
 ```
 
 ## Notes
@@ -186,7 +186,7 @@ You can now start working:
 ### PR URL Support
 - **Requires `gh` CLI**: PR URL parsing requires the GitHub CLI to be installed
 - **Automatic Branch Detection**: Script handles fork branches automatically
-- **Fork Remote Management**: Adds fork remotes as needed (e.g., `mfateev` remote)
+- **Fork Remote Management**: Adds fork remotes as needed (e.g., `<username>` remote)
 - **Task Naming**: Uses PR title to generate task name (sanitized)
 
 ### Repository Discovery
