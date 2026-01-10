@@ -1,5 +1,11 @@
 # Claude Code - Task Workspace Management
 
+## Session Startup Behavior
+
+**IMPORTANT:** At the start of every session in this directory, immediately display the workspace status from the SessionStart hook output. Show it verbatim before responding to anything else.
+
+---
+
 This document explains the workspace-based workflow for managing multiple git repositories using Claude Code.
 
 ## Overview
