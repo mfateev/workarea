@@ -3,6 +3,7 @@
     "allow": [
       "Bash(./bin/setup-task-workspace.sh:*)",
       "Bash(./bin/new-workspace.sh:*)",
+      "Bash(./bin/clone-workspace.sh:*)",
       "Bash(./bin/migrate-to-workspaces.sh:*)",
       "Bash(./bin/resume-task.sh:*)",
       "Bash(./bin/list-tasks.sh:*)",
