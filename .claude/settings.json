@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/maxim/ai/workarea/bin/list-tasks.sh"
+            "command": "./bin/list-tasks.sh"
           }
         ]
       }
