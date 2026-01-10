@@ -13,6 +13,9 @@ tasks/*/*
 !tasks/*/*.md
 !tasks/*/*.json
 
+# Local Claude settings (user-specific permissions)
+.claude/settings.local.json
+
 # Temporary files
 *.swp
 *.swo
