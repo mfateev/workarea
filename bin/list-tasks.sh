@@ -122,15 +122,6 @@ else
                 ws_name=$(basename "$ws_path")
                 WS_NUM=$((WS_NUM + 1))
 
-                # Count tasks
-                task_count=0
-                if [ -d "$ws_path/tasks" ]; then
-                    shopt -s nullglob
-                    task_dirs=("$ws_path/tasks"/*/)
-                    shopt -u nullglob
-                    task_count=${#task_dirs[@]}
-                fi
-
                 # Get workspace description from README if available
                 description=""
                 if [ -f "$ws_path/README.md" ]; then
@@ -139,9 +130,53 @@ else
                 fi
 
                 echo -e "${BLUE}${WS_NUM}.${NC} ${ws_name}"
-                echo "   ${task_count} task(s)"
                 if [ -n "$description" ]; then
                     echo "   ${description}"
+                fi
+
+                # List individual tasks
+                if [ -d "$ws_path/tasks" ]; then
+                    shopt -s nullglob
+                    task_dirs=("$ws_path/tasks"/*/)
+                    shopt -u nullglob
+
+                    if [ ${#task_dirs[@]} -eq 0 ]; then
+                        echo "   (no tasks)"
+                    else
+                        for task_path in "${task_dirs[@]}"; do
+                            [ ! -d "$task_path" ] && continue
+                            task_name=$(basename "$task_path")
+                            status_file="${task_path}/TASK_STATUS.md"
+                            config_file="${task_path}/task.json"
+
+                            # Determine status icon
+                            status_icon="⚪"
+                            if [ -f "$status_file" ]; then
+                                if grep -q -E "(❌|FAILED|failing.*CI|CI.*failing)" "$status_file" 2>/dev/null; then
+                                    status_icon="🔴"
+                                elif grep -q -E "(✅.*PASSING|All.*pass|CI.*pass)" "$status_file" 2>/dev/null; then
+                                    status_icon="🟢"
+                                elif grep -q -E "(Investigation|WIP|TODO|In Progress)" "$status_file" 2>/dev/null; then
+                                    status_icon="🟡"
+                                elif grep -q -E "(✅.*[Cc]omplete|DONE|[Rr]esolved)" "$status_file" 2>/dev/null; then
+                                    status_icon="🟢"
+                                fi
+                            fi
+
+                            # Get PR number if available
+                            pr_info=""
+                            if [ -f "$config_file" ] && command -v jq &> /dev/null; then
+                                pr_number=$(jq -r '.pr_number // ""' "$config_file" 2>/dev/null)
+                                if [ -n "$pr_number" ] && [ "$pr_number" != "null" ]; then
+                                    pr_info=" (PR #${pr_number})"
+                                fi
+                            fi
+
+                            echo "   ${status_icon} ${task_name}${pr_info}"
+                        done
+                    fi
+                else
+                    echo "   (no tasks)"
                 fi
                 echo ""
             done
