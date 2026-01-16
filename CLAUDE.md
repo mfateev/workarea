@@ -6,6 +6,68 @@
 
 ---
 
+## Git Safety Rules
+
+**CRITICAL:** Before running any destructive git command, ALWAYS verify you are in the correct repository.
+
+### Dangerous Commands (Require Verification)
+
+These commands can cause data loss or repository corruption if run in the wrong location:
+
+- `git reset --hard` - Discards all local changes
+- `git checkout <branch>` - Can overwrite working directory
+- `git clean -fd` - Deletes untracked files permanently
+- `git merge` / `git rebase` - Can alter history
+- `git push --force` - Can overwrite remote history
+- `git remote add/remove` - Alters repository configuration
+
+### Required Safety Checks
+
+**Before running any dangerous command, ALWAYS:**
+
+1. **Verify the repository identity:**
+   ```bash
+   git remote -v
+   ```
+   Confirm the remote URL matches the expected repository.
+
+2. **Check current location:**
+   ```bash
+   pwd
+   ```
+   Ensure you're in the correct directory (task worktree, not workarea root).
+
+3. **Review current state:**
+   ```bash
+   git status
+   ```
+   Understand what will be affected.
+
+### Protected Locations
+
+**NEVER run destructive git commands in these locations:**
+
+- `/Users/maxim/workarea` (workarea root) - This is a management repo, not a code repo
+- `repos/` directory directly - Use worktrees in tasks instead
+
+**ALWAYS work in:**
+- `workspaces/<name>/tasks/<task>/<repo>/` - Task-specific worktrees
+
+### Example Safe Workflow
+
+```bash
+# WRONG: Running git commands at workarea root
+cd /Users/maxim/workarea
+git checkout some-branch  # DANGEROUS - wrong repo!
+
+# RIGHT: Navigate to specific task worktree first
+cd /Users/maxim/workarea/workspaces/mywork/tasks/feature/sdk-java
+git remote -v             # Verify: should show sdk-java remotes
+git checkout feature-branch  # Safe: correct repo
+```
+
+---
+
 This document explains the workspace-based workflow for managing multiple git repositories using Claude Code.
 
 ## Overview
