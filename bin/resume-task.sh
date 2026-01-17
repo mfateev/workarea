@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # Script to resume/restore a task from its task.json configuration
-# Usage: resume-task.sh <task-name>
+# Usage: resume-task.sh <task-name> [workspace-path]
 #
-# IMPORTANT: Must be run from within a workspace (workspaces/<name>/).
-# Repos are shared at workarea root. Tasks are looked up in the current workspace.
+# Can be run from anywhere if workspace-path is provided.
+# Otherwise, must be run from within a workspace (workspaces/<name>/).
+# Repos are shared at workarea root.
 
 set -e
 
@@ -131,20 +132,26 @@ fi
 
 # Print usage
 usage() {
-    echo "Usage: $0 <task-name>"
+    echo "Usage: $0 <task-name> [workspace-path]"
     echo ""
     echo "Restores a task workspace from its task.json configuration."
     echo ""
+    echo "Arguments:"
+    echo "  task-name       Name of the task to resume"
+    echo "  workspace-path  (Optional) Path to the workspace directory"
+    echo "                  If not provided, detects from current directory"
+    echo ""
     echo "Examples:"
     echo "  $0 async-await"
-    echo "  $0 feature-authentication"
+    echo "  $0 async-await /path/to/workspaces/issues"
+    echo "  $0 temporal-airflow workspaces/projects"
     echo ""
     echo "Note: This reads tasks/<task-name>/task.json to set up repositories and worktrees."
     exit 1
 }
 
 # Parse arguments
-if [ $# -ne 1 ]; then
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
     usage
 fi
 
@@ -153,6 +160,26 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 TASK_NAME="$1"
+
+# Handle optional workspace path argument
+if [ $# -eq 2 ]; then
+    # Workspace path provided explicitly
+    EXPLICIT_WORKSPACE="$2"
+
+    # Convert relative to absolute if needed
+    if [[ "$EXPLICIT_WORKSPACE" != /* ]]; then
+        EXPLICIT_WORKSPACE="${WORKAREA_ROOT}/${EXPLICIT_WORKSPACE}"
+    fi
+
+    if [ -d "$EXPLICIT_WORKSPACE" ]; then
+        WORKSPACE_DIR="$EXPLICIT_WORKSPACE"
+        TASKS_DIR="${WORKSPACE_DIR}/tasks"
+    else
+        echo -e "${RED}Error: Workspace directory does not exist: ${EXPLICIT_WORKSPACE}${NC}"
+        exit 1
+    fi
+fi
+
 TASK_DIR="${TASKS_DIR}/${TASK_NAME}"
 CONFIG_FILE="${TASK_DIR}/task.json"
 

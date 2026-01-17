@@ -7,6 +7,7 @@
       "Bash(./bin/detach-workspace.sh:*)",
       "Bash(./bin/migrate-to-workspaces.sh:*)",
       "Bash(./bin/resume-task.sh:*)",
+      "Bash(./bin/find-task.sh:*)",
       "Bash(./bin/list-tasks.sh:*)",
       "Bash(git worktree:*)",
       "Bash(git fetch:*)",

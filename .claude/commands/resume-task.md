@@ -2,29 +2,29 @@
 
 Restore a task workspace from its saved configuration.
 
-**IMPORTANT:** Must be run from within a workspace (`workspaces/<name>/`).
-
 ## Usage
 
 ```
-/resume-task <task-name>
+/resume-task <task-name-or-pattern>
 ```
 
 ## Examples
 
 ```
-# First, navigate to a workspace
-cd workspaces/default
+# From anywhere - will search all workspaces
+/resume-task airflow        # Finds "temporal-airflow"
+/resume-task PR-2751        # Finds task by PR number
+/resume-task async          # Finds "async-await"
 
-# Then resume a task
-/resume-task my-feature
-/resume-task feature-authentication
-/resume-task fix-pagination
+# From within a workspace - searches that workspace first
+cd workspaces/projects
+/resume-task airflow        # Finds within current workspace
 ```
 
 ## Purpose
 
 This command restores a complete task workspace by:
+- **Searching for tasks** by name or partial match across workspaces
 - Reading the `task.json` configuration file
 - Cloning required repositories (if not already present)
 - Adding fork remotes automatically
@@ -37,113 +37,125 @@ This command restores a complete task workspace by:
 
 When this command is invoked:
 
-### 0. Verify workspace context (REQUIRED)
+### 1. Find the task (REQUIRED - do this FIRST)
 
-Check if currently in a workspace (`workspaces/<name>/`).
+**CRITICAL:** Do NOT attempt to read task.json or TASK_STATUS.md until you have found the correct task path.
 
-**If NOT in a workspace:**
-- Show available workspaces
-- Ask: "Which workspace contains this task?"
-- Navigate to selected workspace before proceeding
+Run this search command FIRST to locate the task:
+```bash
+./bin/find-task.sh "<task-pattern>"
+```
 
-**If in a workspace:**
-- Proceed to step 1
+This will:
+- Search all workspaces for tasks matching the pattern
+- Return the workspace and task name
+- Handle partial matches (e.g., "airflow" matches "temporal-airflow")
 
-### 1. Validate task exists
-   - Check if `tasks/<task-name>/` directory exists
-   - Verify `tasks/<task-name>/task.json` is present
-   - If not found, list available tasks from `tasks/` directory
+**If no matches found:**
+- Show available tasks across all workspaces
+- Ask user to clarify which task they meant
 
-2. **Display task information**
-   - Read and parse `task.json`
-   - Show task details:
-     - Task name
-     - Description
-     - PR URL (if applicable)
-     - Number of repositories
-     - Created date
-   - Show preview of `TASK_STATUS.md` (first 20 lines) to give context
+**If multiple matches found:**
+- Show all matches with their workspace
+- Ask user which one they want to resume
 
-3. **Confirm with user**
-   - Ask user to confirm they want to restore this task
-   - Show what will be done:
-     - Repositories to be cloned
-     - Branches to be checked out
-     - Fork remotes to be added
+**If exactly one match:**
+- Proceed to step 2 with the found task
 
-4. **Execute restoration script**
-   - Run `./bin/resume-task.sh <task-name>`
-   - Stream output to user in real-time
-   - Show progress for:
-     - Repository cloning
-     - Remote addition
-     - Worktree creation
-     - Branch checkout
+### 2. Display task information
 
-5. **Verify restoration**
-   - Check that worktrees were created successfully
-   - Verify branches are checked out correctly
-   - Test that tracking branches are set up
+Once you have the task path:
+- Read and parse `task.json`
+- Show task details:
+  - Task name
+  - Description
+  - PR URL (if applicable)
+  - Number of repositories
+  - Created date
+- Show preview of `TASK_STATUS.md` (first 20 lines) to give context
 
-6. **Provide next steps**
-   - Navigate to the task directory
-   - Show current git status
-   - Remind user to:
-     - Read `TASK_STATUS.md` for context
-     - Pull latest changes: `git pull`
-     - Continue working where they left off
+### 3. Confirm with user
+- Ask user to confirm they want to restore this task
+- Show what will be done:
+  - Repositories to be cloned
+  - Branches to be checked out
+  - Fork remotes to be added
+
+### 4. Execute restoration script
+
+Navigate to the workspace first, then run:
+```bash
+cd <workspace-path>
+./bin/resume-task.sh <exact-task-name>
+```
+
+Stream output to user in real-time showing progress for:
+- Repository cloning
+- Remote addition
+- Worktree creation
+- Branch checkout
+
+### 5. Verify restoration
+- Check that worktrees were created successfully
+- Verify branches are checked out correctly
+- Test that tracking branches are set up
+
+### 6. Provide next steps
+- Navigate to the task directory
+- Show current git status
+- Remind user to:
+  - Read `TASK_STATUS.md` for context
+  - Pull latest changes: `git pull`
+  - Continue working where they left off
 
 ## Example Interaction
 
 ```
-User: /resume-task my-feature
+User: /resume-task airflow
 
-Claude: I'll restore the task workspace for "my-feature"
+Claude: Let me find the task matching "airflow"...
+
+[Runs ./bin/find-task.sh "airflow"]
+
+Found task:
+  Workspace: projects
+  Task: temporal-airflow
+  Path: workspaces/projects/tasks/temporal-airflow
 
 Reading task configuration...
 
 Task Information:
-  Name: my-feature
-  Description: Implement new feature
-  PR: https://github.com/org/repo/pull/123
-  Created: 2026-01-06T14:47:00Z
+  Name: temporal-airflow
+  Description: Temporal Airflow integration
+  PR: N/A
+  Created: 2026-01-10T14:47:00Z
   Repositories: 1
-    - repo (branch: my-feature, fork: <username>)
+    - airflow (branch: main, fork: user)
 
 Task Status Preview:
-  > # Task Status: Feature PR #123
+  > # Task Status: Temporal Airflow
   >
-  > **Last Updated:** 2026-01-06
-  > **PR:** https://github.com/org/repo/pull/123
-  > **Branch:** `my-feature` (from fork: <username>/fork-repo)
-  >
-  > ## Current Status
-  >
-  > ### CI Status
-  > ❌ 1 FAILING CHECK:
-  > - Unit test with in-memory test service [Edge]
-  ...
+  > **Last Updated:** 2026-01-10
+  > ...
 
-[Runs ./bin/resume-task.sh my-feature]
+Would you like me to restore this task? [Y/n]
 
-✓ Repository cloned: repos/repo
-✓ Fork remote added: <username>
-✓ Branch fetched: <username>/my-feature
-✓ Worktree created: tasks/my-feature/repo
+User: y
+
+[Navigates to workspace and runs ./bin/resume-task.sh temporal-airflow]
+
+✓ Repository exists: repos/airflow
+✓ Worktree already exists (updating...)
+✓ Pulled latest changes
 
 Workspace restored successfully!
 
 Next steps:
-  1. Navigate to task: cd tasks/my-feature/repo
-  2. Check status: git status
-  3. Pull latest changes: git pull
-  4. Review task status: cat ../TASK_STATUS.md
+  1. cd workspaces/projects/tasks/temporal-airflow/airflow
+  2. Review task status: cat TASK_STATUS.md
+  3. Continue working!
 
-[Changes directory to tasks/my-feature/repo]
-
-Current branch: my-feature
-Tracking: <username>/my-feature
-Status: Ready to work!
+[Changes directory to the task]
 ```
 
 ## Error Handling
@@ -152,13 +164,21 @@ Status: Ready to work!
 ```
 User: /resume-task nonexistent-task
 
-Claude: Task "nonexistent-task" not found.
+Claude: [Runs ./bin/find-task.sh "nonexistent-task"]
 
-Available tasks:
-  - my-feature (PR #123: Implement new feature)
-  - feature-auth (New feature: Implement user authentication)
+No tasks found matching "nonexistent-task".
 
-Use: /resume-task <task-name>
+Available tasks across all workspaces:
+
+issues:
+  - async-await (PR #2751)
+  - core-await-timer
+
+projects:
+  - temporal-airflow
+  - kotlin-sdk-samples
+
+Use: /resume-task <task-name-or-pattern>
 ```
 
 ### Missing task.json
@@ -249,8 +269,22 @@ The command could be enhanced to:
 
 ## Technical Details
 
-### Script Location
-Calls: `./bin/resume-task.sh`
+### Scripts Used
+
+**1. Task Finder** (run first):
+```bash
+./bin/find-task.sh "<pattern>"
+```
+- Searches all workspaces for matching tasks
+- Supports partial name matching
+- Outputs `MATCH:workspace:task:path` for machine parsing
+
+**2. Task Restorer** (run after finding):
+```bash
+./bin/resume-task.sh <task-name> [workspace-path]
+```
+- Restores repositories and worktrees
+- Can be called from anywhere if workspace-path is provided
 
 ### Configuration File Format
 Reads: `tasks/<task-name>/task.json`
