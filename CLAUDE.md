@@ -127,6 +127,48 @@ git fetch upstream
 
 ---
 
+## Testing Requirements
+
+**CRITICAL:** Never push code or create PRs without running tests first.
+
+### Required Before Pushing
+
+1. **Run the full test suite** for the project before pushing any changes
+2. **Do not skip tests** - Tests that require external services (databases, servers, etc.) must be run with those services
+3. **Verify all tests pass** - Do not push if any tests fail
+4. **Run relevant tests** for changes made - at minimum the tests related to modified code
+
+### No Skipping Tests
+
+**Tests that require services must be run with those services:**
+- If tests need a Temporal server, start the Temporal server and run tests
+- If tests need a database, start the database and run tests
+- Never mark tests as "skipped because service unavailable" as passing
+
+### Example Workflow
+
+```bash
+# WRONG: Push without testing or skipping E2E tests
+git add . && git commit -m "Add feature" && git push
+
+# WRONG: Claim tests pass when E2E tests were skipped
+docker run --rm airflow-temporal:test  # skips E2E tests - NOT SUFFICIENT
+
+# RIGHT: Start required services and run ALL tests
+temporal server start-dev &  # Start Temporal server
+docker run --rm --network host -e SKIP_TEMPORAL_E2E=false -e TEMPORAL_ADDRESS=localhost:7233 airflow-temporal:test
+# Verify: ALL tests pass (including E2E)
+git add . && git commit -m "Add feature" && git push
+```
+
+### When Tests Fail
+
+- Fix the failing tests before pushing
+- If tests are unrelated to your changes, investigate first
+- Never assume test failures are acceptable
+
+---
+
 This document explains the workspace-based workflow for managing multiple git repositories using Claude Code.
 
 ## Overview
