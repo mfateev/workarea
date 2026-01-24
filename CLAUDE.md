@@ -68,6 +68,65 @@ git checkout feature-branch  # Safe: correct repo
 
 ---
 
+## Fork-First Policy (CRITICAL)
+
+**MANDATORY:** NEVER work directly from upstream repositories. ALWAYS create and use personal forks.
+
+### Requirements
+
+**When creating tasks (`/new-task`):**
+1. **Check if a fork exists** on GitHub before setting up the repository
+2. **If no fork exists:** Immediately create one using `gh repo fork <org>/<repo>`
+3. **Configure task.json** with fork_url and fork_owner
+4. **Clone from fork first**, then add upstream as a remote
+
+**When resuming tasks (`/resume-task`):**
+1. **Check task.json** for fork_url and fork_owner
+2. **If missing (fork_url is null):**
+   - STOP and create a fork: `gh repo fork <upstream-url>`
+   - Update task.json with fork information
+   - Clone from fork, not upstream
+3. **Never proceed** with restoration if no fork is configured
+
+### Why This Matters
+
+- **Security:** Prevents accidental pushes to upstream repositories
+- **Safety:** You can't accidentally overwrite upstream branches
+- **Best Practice:** Standard open-source contribution workflow
+- **Isolation:** Your work stays in your namespace until ready to merge
+
+### Fork Creation Workflow
+
+```bash
+# 1. Create fork on GitHub
+gh repo fork <org>/<repo> --clone=false
+
+# 2. Get fork URL
+FORK_URL="https://github.com/<username>/<repo>.git"
+
+# 3. Clone from fork (not upstream)
+git clone $FORK_URL repos/<repo>
+
+# 4. Add upstream as remote
+cd repos/<repo>
+git remote add upstream https://github.com/<org>/<repo>.git
+git fetch upstream
+```
+
+### Enforcement Rules
+
+**Claude Code MUST:**
+- ❌ **NEVER** clone directly from upstream
+- ❌ **NEVER** set `fork_url: null` in task.json
+- ❌ **NEVER** proceed with task restoration without a fork
+- ✅ **ALWAYS** create forks before any work begins
+- ✅ **ALWAYS** push to fork remotes, never to origin/upstream
+- ✅ **ALWAYS** update task.json with fork information
+
+**Exception:** Internal/private repositories where you have write access may skip fork creation if explicitly confirmed by the user.
+
+---
+
 This document explains the workspace-based workflow for managing multiple git repositories using Claude Code.
 
 ## Overview
@@ -309,46 +368,121 @@ Benefits:
 
 ## Fork-Based Workflow (Required)
 
-**Always use personal forks when contributing to upstream repositories.**
+**CRITICAL:** Always use personal forks when contributing to upstream repositories. NEVER work directly from upstream.
 
-### Setup
+### Initial Setup (During /new-task)
 
-```bash
-# Add fork as remote
-cd workspaces/<workspace>/tasks/<task>/<repo>
-git remote add <username> https://github.com/<username>/<fork>.git
+**Before cloning any repository:**
 
-# Push to fork, not origin
-git push <username> <branch>
+1. **Check for existing fork:**
+   ```bash
+   gh repo view <username>/<repo> 2>/dev/null || echo "No fork found"
+   ```
 
-# Create PR from fork
-gh pr create --repo <org>/<repo> --head <username>:<branch>
+2. **Create fork if missing:**
+   ```bash
+   gh repo fork <org>/<repo> --clone=false
+   ```
+
+3. **Clone from YOUR FORK (not upstream):**
+   ```bash
+   # CORRECT: Clone from fork
+   git clone https://github.com/<username>/<repo>.git repos/<repo>
+
+   # WRONG: Never clone from upstream
+   # git clone https://github.com/<org>/<repo>.git repos/<repo>  ❌
+   ```
+
+4. **Add upstream as secondary remote:**
+   ```bash
+   cd repos/<repo>
+   git remote add upstream https://github.com/<org>/<repo>.git
+   git remote set-url --push upstream DISABLE  # Prevent accidental pushes
+   git fetch upstream
+   ```
+
+5. **Verify remote configuration:**
+   ```bash
+   git remote -v
+   # Should show:
+   # origin    https://github.com/<username>/<repo>.git (fetch)
+   # origin    https://github.com/<username>/<repo>.git (push)
+   # upstream  https://github.com/<org>/<repo>.git (fetch)
+   # upstream  DISABLE (push)
+   ```
+
+### Task Configuration
+
+**task.json MUST include fork information:**
+
+```json
+{
+  "repositories": [{
+    "name": "repo-name",
+    "upstream_url": "https://github.com/org/repo.git",
+    "fork_url": "https://github.com/username/repo.git",  ← REQUIRED
+    "branch": "feature-branch",
+    "fork_owner": "username",                             ← REQUIRED
+    "tracking_remote": "origin",                          ← Should be origin (fork)
+    "tracking_branch": "feature-branch"
+  }]
+}
 ```
 
-### Example
+**NEVER create task.json with:**
+- `"fork_url": null`
+- `"fork_owner": null`
+- `"tracking_remote": "upstream"`
+
+### Working with Forks
 
 ```bash
-# Working on org/repo, user is <username>
-cd workspaces/myworkspace/tasks/feature/repo
+# Always push to origin (your fork)
+git push origin feature-branch
 
-# Add fork remote
-git remote add <username> https://github.com/<username>/<fork-repo>.git
+# Pull updates from upstream
+git fetch upstream
+git merge upstream/main
 
-# Make changes and push to fork
-git add . && git commit -m "Implement feature"
-git push <username> feature-branch
-
-# Create PR
+# Create PR from your fork to upstream
 gh pr create --repo <org>/<repo> --head <username>:feature-branch
+```
+
+### Complete Example
+
+```bash
+# User wants to work on temporal/sdk-java
+
+# 1. Create fork (if needed)
+gh repo fork temporalio/sdk-java --clone=false
+
+# 2. Clone from YOUR fork
+git clone https://github.com/maxim/sdk-java.git repos/sdk-java
+
+# 3. Add upstream
+cd repos/sdk-java
+git remote add upstream https://github.com/temporalio/sdk-java.git
+git remote set-url --push upstream DISABLE
+
+# 4. Create feature branch
+git checkout -b feature-branch
+
+# 5. Work and push to YOUR fork
+git add . && git commit -m "Implement feature"
+git push origin feature-branch
+
+# 6. Create PR from fork to upstream
+gh pr create --repo temporalio/sdk-java --head maxim:feature-branch
 ```
 
 ## Best Practices
 
-1. **One Workspace Per Project Area**: Keep workspaces focused (e.g., "work", "personal", "sdk-dev")
-2. **One Task = One Goal**: Keep tasks atomic and focused
-3. **Update TASK_STATUS.md**: Always maintain context for continuity
-4. **Use Forks**: Never push directly to upstream repositories
-5. **Archive, Don't Delete**: Move completed tasks to `archived/` for history
+1. **Always Use Forks (CRITICAL)**: Never work directly from upstream. Create a fork BEFORE starting any task
+2. **One Workspace Per Project Area**: Keep workspaces focused (e.g., "work", "personal", "sdk-dev")
+3. **One Task = One Goal**: Keep tasks atomic and focused
+4. **Update TASK_STATUS.md**: Always maintain context for continuity
+5. **Verify Remotes**: Run `git remote -v` before pushing to confirm you're pushing to your fork
+6. **Archive, Don't Delete**: Move completed tasks to `archived/` for history
 
 ## Troubleshooting
 
