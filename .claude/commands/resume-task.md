@@ -100,12 +100,17 @@ Stream output to user in real-time showing progress for:
 - Verify branches are checked out correctly
 - Test that tracking branches are set up
 
-### 6. Provide next steps
+### 6. Pull latest from origin
+- For each repository worktree in the task:
+  - Run `git pull` to fetch and merge latest from tracking remote
+  - Show pull output (new commits, already up to date, etc.)
+- This ensures the workspace has the latest code before working
+
+### 7. Provide next steps
 - Navigate to the task directory
 - Show current git status
 - Remind user to:
   - Read `TASK_STATUS.md` for context
-  - Pull latest changes: `git pull`
   - Continue working where they left off
 
 ## Example Interaction
@@ -147,6 +152,9 @@ User: y
 ✓ Repository exists: repos/airflow
 ✓ Worktree already exists (updating...)
 ✓ Pulled latest changes
+
+Pulling latest from origin...
+  repo: Already up to date.
 
 Workspace restored successfully!
 
@@ -221,6 +229,7 @@ Note: You may need to add the upstream remote manually:
 - ✅ Git worktrees (to `tasks/<name>/`)
 - ✅ Branch checkouts
 - ✅ Tracking branch setup
+- ✅ Latest commits pulled from origin
 - ❌ Uncommitted changes (push before switching machines!)
 
 ### Differences from `/new-task`
@@ -254,16 +263,13 @@ cd ../.. && git push  # Push task documentation
 ```bash
 git clone https://github.com/<username>/workarea.git
 cd workarea
-/resume-task task-name  # ← This command
-git pull  # Get latest from your fork
+/resume-task task-name  # ← This command (auto-pulls latest)
 # ... continue working ...
 ```
 
 ### Automation Opportunities
 The command could be enhanced to:
-- Auto-detect if repositories need updating (git fetch)
 - Show diff summary of changes since last work
-- Automatically pull latest changes
 - Check CI status and show current build state
 - Suggest next actions based on TASK_STATUS.md
 
