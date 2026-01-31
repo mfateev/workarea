@@ -140,6 +140,101 @@ EOF
   done <<< "$TARGETS"
 fi
 
+# === VALIDATE GIT INIT LOCATION ===
+# git init should only happen in repos/ or workspaces/<name>/, never in tasks
+
+if echo "$COMMAND" | grep -qE '^git init'; then
+  # Allowed locations for git init:
+  # 1. repos/<repo>/ subdirectories (NOT repos/ itself - it's a container)
+  # 2. workspaces/<name>/ directory (workspace root only, NOT workspaces/ itself)
+
+  # Check if in repos/ subdirectory (but NOT the repos/ container itself)
+  if [[ "$CWD" =~ ^$WORKAREA_ROOT/repos/[^/]+(/.*)?$ ]]; then
+    exit 0  # Allow git init in repos/<repo>/ subdirectories
+  fi
+
+  # Check if at repos/ container itself (block it)
+  if [[ "$CWD" == "$WORKAREA_ROOT/repos" ]]; then
+    cat >&2 <<EOF
+🛑 Directory Structure Check: git init not allowed in repos/ container!
+
+You're trying to initialize a git repository in the repos/ container:
+  Directory: $CWD
+  Command: $COMMAND
+
+The repos/ directory is just a container for repository clones.
+
+Allowed locations for git init:
+  ✅ repos/<repo>/       - Inside a specific repository directory
+  ✅ workspaces/<name>/  - For workspace metadata tracking
+
+  ❌ repos/              - Container directory (not a repository)
+
+To initialize a repository:
+  1. Create repository directory: mkdir repos/<repo>
+  2. Navigate into it: cd repos/<repo>
+  3. Initialize: git init
+EOF
+    exit 2  # Block git init at repos/ container
+  fi
+
+  # Check if in workspace root directory (not in tasks)
+  if [[ "$CWD" =~ ^$WORKAREA_ROOT/workspaces/[^/]+/?$ ]]; then
+    exit 0  # Allow git init in workspace root for metadata tracking
+  fi
+
+  # Check if we're in tasks directory or deeper
+  if [[ "$CWD" =~ /tasks(/|$) ]]; then
+    cat >&2 <<EOF
+🛑 Directory Structure Check: git init not allowed in task directories!
+
+You're trying to initialize a git repository inside a task directory:
+  Directory: $CWD
+  Command: $COMMAND
+
+Task directories should ONLY use git worktrees, never initialize repos.
+
+Allowed locations for git init:
+  ✅ repos/              - For main repository clones
+  ✅ repos/<repo>/       - Inside a repository
+  ✅ workspaces/<name>/  - For workspace metadata tracking
+
+  ❌ workspaces/<name>/tasks/               - Tasks container
+  ❌ workspaces/<name>/tasks/<task>/        - Task root
+  ❌ workspaces/<name>/tasks/<task>/<repo>/ - Worktree location
+
+To work in a repository:
+  1. Clone to repos/: git clone <url> repos/<repo>
+  2. Use /resume-task to create worktrees in task directories
+
+Worktrees link to repos/ and should be created with:
+  git worktree add <path> <branch>
+EOF
+    exit 2  # Block git init in tasks
+  fi
+
+  # Check if at workarea root
+  if [[ "$CWD" == "$WORKAREA_ROOT" ]]; then
+    cat >&2 <<EOF
+🛑 Directory Structure Check: git init not allowed at workarea root!
+
+You're trying to initialize a git repository at the workarea root:
+  Directory: $CWD
+  Command: $COMMAND
+
+The workarea root is already a git repository for tooling.
+
+Allowed locations for git init:
+  ✅ repos/<repo>/       - For repository clones
+  ✅ workspaces/<name>/  - For workspace metadata
+
+To fix:
+  - Navigate to repos/ or a workspace directory first
+EOF
+    exit 2  # Block git init at workarea root
+  fi
+fi
+
 # === VALIDATE WORKSPACE GIT OPERATIONS ===
 # Ensure workspaces contain .git directories (are valid git repos)
 
@@ -150,6 +245,7 @@ if echo "$COMMAND" | grep -qE '^git (init|clone|add|commit)'; then
     # Check if .git exists (after init/clone it should)
 
     # For git init or git clone, allow it (will create .git)
+    # (git init already validated above, this is for clone)
     if echo "$COMMAND" | grep -qE '^git (init|clone)'; then
       exit 0  # Allow init/clone in workspace directories
     fi

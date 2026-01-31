@@ -101,6 +101,18 @@ test_hook "mv within workspace (allowed)" "Bash" "mv tasks/old tasks/new" "$TEST
 test_hook "cp to repos/ (allowed)" "Bash" "cp -r /tmp/repo repos/new-repo" "$TEST_ROOT" 0
 test_hook "mv to create root dir (blocked)" "Bash" "mv /tmp/stuff mydir" "$TEST_ROOT" 2
 
+echo ""
+echo -e "${BLUE}=== Scenario 8: git init location validation ===${NC}"
+mkdir -p "$TEST_ROOT/repos/test-repo"
+mkdir -p "$TEST_ROOT/workspaces/test-workspace/tasks/my-task"
+test_hook "git init in repos/ container (blocked)" "Bash" "git init" "$TEST_ROOT/repos" 2
+test_hook "git init in repos/repo/ (allowed)" "Bash" "git init" "$TEST_ROOT/repos/test-repo" 0
+test_hook "git init in workspace root (allowed)" "Bash" "git init" "$TEST_ROOT/workspaces/test-workspace" 0
+test_hook "git init in workspaces/ container (blocked)" "Bash" "git init" "$TEST_ROOT/workspaces" 2
+test_hook "git init in tasks/ (blocked)" "Bash" "git init" "$TEST_ROOT/workspaces/test-workspace/tasks" 2
+test_hook "git init in task root (blocked)" "Bash" "git init" "$TEST_ROOT/workspaces/test-workspace/tasks/my-task" 2
+test_hook "git init at workarea root (blocked)" "Bash" "git init" "$TEST_ROOT" 2
+
 # Cleanup
 rm -rf "$TEST_ROOT"
 

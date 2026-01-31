@@ -36,7 +36,34 @@ mkdir tasks       # NOT allowed at root
 mkdir projects    # NOT allowed at root
 ```
 
-### 3. Workspace Git Repository
+### 3. Git Init Location Restrictions
+- ✅ **Allowed**: git init in `repos/<repo>/` subdirectories (specific repositories)
+- ✅ **Allowed**: git init in `workspaces/<name>/` (workspace directories, for metadata)
+- ❌ **Blocked**: git init in `repos/` container itself
+- ❌ **Blocked**: git init in `workspaces/` container itself
+- ❌ **Blocked**: git init in task directories (must use worktrees)
+- ❌ **Blocked**: git init at workarea root
+
+```bash
+# Correct
+mkdir repos/sdk-java && cd repos/sdk-java && git init  # Initialize specific repo
+cd workspaces/issues && git init                        # Initialize workspace
+
+# Wrong - containers are not repositories
+cd repos && git init                        # Blocked - repos/ is a container
+cd workspaces && git init                   # Blocked - workspaces/ is a container
+
+# Wrong - tasks must use worktrees
+cd workspaces/issues/tasks && git init                    # Blocked
+cd workspaces/issues/tasks/my-task && git init            # Blocked
+cd workspaces/issues/tasks/my-task/sdk-java && git init   # Blocked
+
+# To work in tasks, use worktrees:
+git clone <url> repos/sdk-java
+git -C repos/sdk-java worktree add workspaces/issues/tasks/my-task/sdk-java
+```
+
+### 4. Workspace Git Repository
 - ✅ **Allowed**: git init/clone in workspace directories
 - ✅ **Allowed**: git operations in initialized workspaces
 - ❌ **Blocked**: git operations in uninitialized workspaces
@@ -135,7 +162,64 @@ To fix:
   2. Or use /clone-workspace to clone an existing workspace
 ```
 
-### Example 4: Git operations in workspaces container
+### Example 4: git init in repos/ container
+
+```bash
+$ cd repos
+$ git init
+
+🛑 Directory Structure Check: git init not allowed in repos/ container!
+
+You're trying to initialize a git repository in the repos/ container:
+  Directory: /workarea/repos
+  Command: git init
+
+The repos/ directory is just a container for repository clones.
+
+Allowed locations for git init:
+  ✅ repos/<repo>/       - Inside a specific repository directory
+  ✅ workspaces/<name>/  - For workspace metadata tracking
+
+  ❌ repos/              - Container directory (not a repository)
+
+To initialize a repository:
+  1. Create repository directory: mkdir repos/<repo>
+  2. Navigate into it: cd repos/<repo>
+  3. Initialize: git init
+```
+
+### Example 5: git init in task directory
+
+```bash
+$ cd workspaces/issues/tasks/my-task/sdk-java
+$ git init
+
+🛑 Directory Structure Check: git init not allowed in task directories!
+
+You're trying to initialize a git repository inside a task directory:
+  Directory: /workarea/workspaces/issues/tasks/my-task/sdk-java
+  Command: git init
+
+Task directories should ONLY use git worktrees, never initialize repos.
+
+Allowed locations for git init:
+  ✅ repos/              - For main repository clones
+  ✅ repos/<repo>/       - Inside a repository
+  ✅ workspaces/<name>/  - For workspace metadata tracking
+
+  ❌ workspaces/<name>/tasks/               - Tasks container
+  ❌ workspaces/<name>/tasks/<task>/        - Task root
+  ❌ workspaces/<name>/tasks/<task>/<repo>/ - Worktree location
+
+To work in a repository:
+  1. Clone to repos/: git clone <url> repos/sdk-java
+  2. Use /resume-task to create worktrees in task directories
+
+Worktrees link to repos/ and should be created with:
+  git worktree add <path> <branch>
+```
+
+### Example 6: Git operations in workspaces container
 
 ```bash
 $ cd workspaces
@@ -193,12 +277,22 @@ Run the test suite:
 ```
 
 Test coverage includes:
-- Git clone to various locations (7 tests)
+- Git clone to various locations (4 tests)
 - Directory creation at root (5 tests)
 - Workspace git validation (4 tests)
 - Non-Bash tools (2 tests)
 - Operations outside workarea (2 tests)
 - Safe operations (3 tests)
+- Move/copy operations (3 tests)
+- Git init location validation (7 tests)
+  - repos/ container (blocked)
+  - repos/<repo>/ (allowed)
+  - workspaces/<name>/ (allowed)
+  - workspaces/ container (blocked)
+  - tasks directories (blocked)
+  - workarea root (blocked)
+
+**Total: 30 test scenarios, all passing ✅**
 
 ## How It Works
 
