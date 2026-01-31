@@ -1,3 +1,19 @@
+# Workarea Validation Hooks
+
+The workarea uses two validation hooks to enforce architecture and prevent common mistakes:
+
+1. **[directory-structure-check.sh](DIRECTORY_STRUCTURE.md)** - Validates directory architecture
+   - Git clone only in `repos/`
+   - Root directories limited to `workspaces/` and `repos/`
+   - Workspaces must be git repositories
+
+2. **git-safety-check.sh** (this document) - Validates git operations
+   - Prevents code commits from wrong context
+   - Enforces Fork-First Policy
+   - Validates worktree locations
+
+---
+
 # Git Safety Hook
 
 ## Purpose

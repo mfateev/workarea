@@ -1,4 +1,151 @@
-# Git Safety Hook - Changelog
+# Workarea Validation Hooks - Changelog
+
+## Version 3.0 - Directory Structure Validation
+
+### Added
+
+**New Hook: directory-structure-check.sh** - Enforces workarea directory architecture.
+
+This hook validates that Claude follows the workarea structure and only creates directories/clones repositories in authorized locations:
+
+```
+workarea/
+├── repos/           ✅ Git clones ONLY
+├── workspaces/      ✅ Workspace container ONLY
+│   └── <name>/.git  ✅ Must be git repo
+├── tasks/           ❌ NOT allowed at root
+└── anything-else/   ❌ NOT allowed at root
+```
+
+**What It Validates:**
+
+1. **Git Clone Location** - Must target `repos/` directory only
+   ```bash
+   ✅ git clone <url> repos/sdk-java
+   ❌ git clone <url> sdk-java  # Wrong location
+   ```
+
+2. **Root Directory Creation** - Only `workspaces/` and `repos/` allowed
+   ```bash
+   ✅ mkdir workspaces
+   ✅ mkdir repos
+   ❌ mkdir tasks        # Not allowed at root
+   ❌ mkdir projects     # Not allowed at root
+   ```
+
+3. **Workspace Git Repositories** - Workspaces must be git repos
+   ```bash
+   ✅ cd workspaces/issues && git commit  # If initialized
+   ❌ cd workspaces/issues && git commit  # If not initialized
+   ❌ cd workspaces && git init          # In container
+   ```
+
+### Why This Matters
+
+**Without this validation, Claude could:**
+- Clone repositories into random locations
+- Create directories that break the architecture
+- Work in non-git-tracked workspaces
+- Lose task metadata (not tracked in git)
+
+**With this validation:**
+- All repositories stay in `repos/` (shared across workspaces)
+- Workarea root stays clean (only infrastructure)
+- Workspace metadata is always git-tracked
+- Architecture is enforced automatically
+
+### Test Coverage
+
+Added `test-directory-structure.sh` with 23 test scenarios:
+
+1. **Git clone operations** (4 tests)
+   - Clone to repos/ (allowed)
+   - Clone to workarea root (blocked)
+   - Clone to workspaces/ (blocked)
+   - Clone to tasks/ (blocked)
+
+2. **Directory creation at root** (5 tests)
+   - Create repos/ (allowed)
+   - Create workspaces/ (allowed)
+   - Create tasks/ (blocked)
+   - Create random directories (blocked)
+   - Create subdirectories (allowed)
+
+3. **Workspace git validation** (4 tests)
+   - Git in initialized workspace (allowed)
+   - Git init in workspace (allowed)
+   - Git in workspaces container (blocked)
+   - Git commit in container (blocked)
+
+4. **Other scenarios** (10 tests)
+   - Non-Bash tools (pass through)
+   - Operations outside workarea (pass through)
+   - Safe operations (allowed)
+   - Move/copy operations (validated)
+
+**All 23 tests pass** ✅
+
+### Error Message Examples
+
+**Git clone to wrong location:**
+```bash
+🛑 Directory Structure Check: Clone target violates architecture!
+
+You're trying to clone a repository outside the 'repos/' directory:
+  Command: git clone <url> sdk-java
+  Target: /workarea/sdk-java
+
+Workarea architecture requires:
+  ✅ Correct: Clone repositories into repos/
+     Example: git clone <url> repos/sdk-java
+```
+
+**Unauthorized directory creation:**
+```bash
+🛑 Directory Structure Check: Invalid directory at workarea root!
+
+You're trying to create/modify a directory at workarea root:
+  Command: mkdir tasks
+  Target: /workarea/tasks
+
+Workarea root ONLY allows these directories:
+  ✅ workspaces/  - Container for workspace repositories
+  ✅ repos/       - Shared git repository clones
+  ❌ tasks/       - Not allowed at root level
+```
+
+**Uninitialized workspace:**
+```bash
+🛑 Directory Structure Check: Workspace is not a git repository!
+
+You're trying to run git commands in a workspace that's not initialized:
+  Workspace: /workarea/workspaces/new-workspace
+  Command: git commit -m "test"
+
+Workspaces MUST be git repositories to track task metadata.
+```
+
+### Hook Execution Order
+
+Both hooks run in sequence for comprehensive validation:
+
+1. **directory-structure-check.sh** - Validates WHERE things are (architecture)
+2. **git-safety-check.sh** - Validates WHAT you're doing (operations)
+
+### Files Added
+
+- `.claude/hooks/directory-structure-check.sh` - New validation hook
+- `.claude/hooks/test-directory-structure.sh` - New test suite
+- `.claude/hooks/DIRECTORY_STRUCTURE.md` - Complete documentation
+
+### Files Modified
+
+- `.claude/settings.json` - Added directory-structure-check.sh to PreToolUse
+- `.claude/hooks/git-safety-check.sh` - Removed duplicate git clone validation
+- `.claude/hooks/README.md` - Added overview of both hooks
+- `.claude/hooks/CHANGELOG.md` - This file
+
+---
 
 ## Version 2.0 - Worktree Location Enforcement
 

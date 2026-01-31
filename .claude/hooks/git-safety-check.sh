@@ -23,6 +23,7 @@ if echo "$COMMAND" | grep -qE '^git (status|log|diff|show|branch|remote -v|workt
 fi
 
 # For write operations (add, commit, push, reset, checkout, etc), validate context
+# Note: git clone validation is handled by directory-structure-check.sh
 
 # First, validate that if we're in a worktree, it's in the right location
 # Worktrees should ONLY exist inside tasks/<task-name>/<repo-name>/

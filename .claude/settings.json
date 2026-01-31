@@ -41,6 +41,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/directory-structure-check.sh",
+            "statusMessage": "Validating directory structure..."
+          },
+          {
+            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/git-safety-check.sh",
             "statusMessage": "Validating git operation..."
           }
