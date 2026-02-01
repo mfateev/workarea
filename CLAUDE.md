@@ -53,6 +53,33 @@ These commands can cause data loss or repository corruption if run in the wrong 
 **ALWAYS work in:**
 - `workspaces/<name>/tasks/<task>/<repo>/` - Task-specific worktrees
 
+### Repos Directory Protection (Enforced by Hook)
+
+The `repos/` directory contains shared git clones that should stay on the main branch. **ALL branch manipulation is blocked** in `repos/` and must happen in task worktrees instead.
+
+**Blocked operations in repos/:**
+- `git checkout -b` / `git switch -c` - Creating branches
+- `git checkout <branch>` - Switching branches (except `main`/`master`)
+- `git branch -d/-D` - Deleting branches
+- `git branch -m/-M` - Renaming branches
+- `git merge` - Merging branches
+- `git rebase` - Rebasing
+- `git commit` - Making commits
+- `git reset` - Resetting (except `git reset --hard origin/main`)
+
+**Allowed operations in repos/:**
+- `git fetch` - Fetching updates from remotes
+- `git checkout main` - Switching to main branch
+- `git reset --hard origin/main` - Syncing with remote main
+- `git status`, `git log`, `git diff` - Read-only operations
+- `git worktree add` - Creating worktrees for tasks
+- `git remote -v` - Viewing remotes
+
+**Why this matters:**
+- `repos/` is shared across all workspaces and tasks
+- Branch changes in `repos/` can break existing worktrees
+- All development work should be isolated in task worktrees
+
 ### Example Safe Workflow
 
 ```bash

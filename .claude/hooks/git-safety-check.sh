@@ -22,6 +22,191 @@ if echo "$COMMAND" | grep -qE '^git (status|log|diff|show|branch|remote -v|workt
   exit 0  # Allow safe read-only commands
 fi
 
+# ============================================================================
+# REPOS DIRECTORY PROTECTION
+# Block ALL branch manipulation in repos/ directory
+# All modifications should happen through worktrees in tasks/
+# ============================================================================
+if [[ "$CWD" =~ /repos/[^/]+/?$ ]] || [[ "$CWD" =~ /repos/[^/]+/.* ]]; then
+  # We're inside the repos/ directory - block branch manipulation
+
+  # Branch creation commands
+  if echo "$COMMAND" | grep -qE '^git (checkout -b|checkout --branch|switch -c|switch --create|branch [^-])'; then
+    cat >&2 <<EOF
+🛑 Git Safety Check: Branch creation blocked in repos/!
+
+You're trying to CREATE a branch in the shared repos/ directory:
+  Working directory: $CWD
+  Command: $COMMAND
+
+The repos/ directory should ONLY contain the main clone. All branch work
+must happen through worktrees in task directories.
+
+✅ Correct workflow:
+   1. Create a task: /new-task <description>
+   2. Work in the task worktree: workspaces/<name>/tasks/<task>/<repo>/
+   3. Create branches there: git checkout -b feature-branch
+
+❌ Blocked: Creating branches directly in repos/
+   Location: $CWD
+
+To fix: Navigate to or create a task worktree for your work.
+EOF
+    exit 2
+  fi
+
+  # Branch switching commands (except to main/master for sync purposes)
+  if echo "$COMMAND" | grep -qE '^git (checkout|switch)[[:space:]]+[a-zA-Z]' && ! echo "$COMMAND" | grep -qE '^git (checkout|switch)[[:space:]]+(main|master)([[:space:]]|$)'; then
+    cat >&2 <<EOF
+🛑 Git Safety Check: Branch switching blocked in repos/!
+
+You're trying to SWITCH branches in the shared repos/ directory:
+  Working directory: $CWD
+  Command: $COMMAND
+
+The repos/ directory should stay on the main branch. All branch work
+must happen through worktrees in task directories.
+
+✅ Allowed: git checkout main (to sync with remote)
+✅ Correct: Work in task worktrees for feature branches
+
+❌ Blocked: Switching to non-main branches in repos/
+   Location: $CWD
+
+To fix: Use a task worktree for branch work, or use 'git checkout main' to sync.
+EOF
+    exit 2
+  fi
+
+  # Branch deletion commands
+  if echo "$COMMAND" | grep -qE '^git branch[[:space:]]+-[dD]'; then
+    cat >&2 <<EOF
+🛑 Git Safety Check: Branch deletion blocked in repos/!
+
+You're trying to DELETE a branch in the shared repos/ directory:
+  Working directory: $CWD
+  Command: $COMMAND
+
+Branch deletion in repos/ can affect worktrees that depend on those branches.
+
+✅ Correct: Delete branches through GitHub PR interface after merging
+✅ Correct: Remove worktrees first, then clean up branches
+
+❌ Blocked: Direct branch deletion in repos/
+   Location: $CWD
+
+To fix: Use GitHub to delete merged branches, or ensure no worktrees depend on the branch.
+EOF
+    exit 2
+  fi
+
+  # Branch rename commands
+  if echo "$COMMAND" | grep -qE '^git branch[[:space:]]+-[mM]'; then
+    cat >&2 <<EOF
+🛑 Git Safety Check: Branch rename blocked in repos/!
+
+You're trying to RENAME a branch in the shared repos/ directory:
+  Working directory: $CWD
+  Command: $COMMAND
+
+Branch renaming in repos/ can break worktrees that depend on those branches.
+
+❌ Blocked: Branch renaming in repos/
+   Location: $CWD
+
+To fix: Rename branches in worktrees or through GitHub interface.
+EOF
+    exit 2
+  fi
+
+  # Merge commands
+  if echo "$COMMAND" | grep -qE '^git merge'; then
+    cat >&2 <<EOF
+🛑 Git Safety Check: Merge blocked in repos/!
+
+You're trying to MERGE in the shared repos/ directory:
+  Working directory: $CWD
+  Command: $COMMAND
+
+Merging in repos/ should be avoided. Use pull requests instead.
+
+✅ Correct: Create PR on GitHub, merge through GitHub interface
+✅ Allowed: git pull origin main (fast-forward updates)
+
+❌ Blocked: Direct merges in repos/
+   Location: $CWD
+
+To fix: Use GitHub PRs for merging, or work in task worktrees.
+EOF
+    exit 2
+  fi
+
+  # Rebase commands
+  if echo "$COMMAND" | grep -qE '^git rebase'; then
+    cat >&2 <<EOF
+🛑 Git Safety Check: Rebase blocked in repos/!
+
+You're trying to REBASE in the shared repos/ directory:
+  Working directory: $CWD
+  Command: $COMMAND
+
+Rebasing in repos/ can cause issues with existing worktrees.
+
+✅ Correct: Rebase in task worktrees, not in the main clone
+
+❌ Blocked: Rebasing in repos/
+   Location: $CWD
+
+To fix: Perform rebases in your task worktree.
+EOF
+    exit 2
+  fi
+
+  # Commit commands (repos should not have local commits)
+  if echo "$COMMAND" | grep -qE '^git commit'; then
+    cat >&2 <<EOF
+🛑 Git Safety Check: Commit blocked in repos/!
+
+You're trying to COMMIT in the shared repos/ directory:
+  Working directory: $CWD
+  Command: $COMMAND
+
+The repos/ directory should only contain clean clones tracking remote branches.
+All commits should happen in task worktrees.
+
+✅ Correct: Commit in task worktrees
+   Location: workspaces/<name>/tasks/<task>/<repo>/
+
+❌ Blocked: Committing in repos/
+   Location: $CWD
+
+To fix: Navigate to your task worktree to make commits.
+EOF
+    exit 2
+  fi
+
+  # Reset commands that modify history
+  if echo "$COMMAND" | grep -qE '^git reset'; then
+    # Allow git reset --hard origin/main for syncing
+    if echo "$COMMAND" | grep -qE '^git reset --hard origin/(main|master)([[:space:]]|$)'; then
+      exit 0  # Allow syncing with remote main
+    fi
+    cat >&2 <<EOF
+🛑 Git Safety Check: Reset blocked in repos/!
+
+You're trying to RESET in the shared repos/ directory:
+  Working directory: $CWD
+  Command: $COMMAND
+
+✅ Allowed: git reset --hard origin/main (sync with remote)
+❌ Blocked: Other reset operations in repos/
+
+To fix: Use 'git reset --hard origin/main' to sync, or work in task worktrees.
+EOF
+    exit 2
+  fi
+fi
+
 # For write operations (add, commit, push, reset, checkout, etc), validate context
 # Note: git clone validation is handled by directory-structure-check.sh
 
