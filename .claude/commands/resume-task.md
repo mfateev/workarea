@@ -41,9 +41,16 @@ When this command is invoked:
 
 **CRITICAL:** Do NOT attempt to read task.json or TASK_STATUS.md until you have found the correct task path.
 
-Run this search command FIRST to locate the task:
+**CRITICAL:** Find the WORKAREA ROOT dynamically - do NOT hardcode paths.
+
+First, find the workarea root (look for the directory containing `bin/find-task.sh`):
 ```bash
-./bin/find-task.sh "<task-pattern>"
+WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/find-task.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
+```
+
+Then run the find-task script:
+```bash
+"$WORKAREA_ROOT/bin/find-task.sh" "<task-pattern>"
 ```
 
 This will:
@@ -83,10 +90,10 @@ Once you have the task path:
 
 ### 4. Execute restoration script
 
-Navigate to the workspace first, then run:
+Navigate to the workspace first, then run the script:
 ```bash
 cd <workspace-path>
-./bin/resume-task.sh <exact-task-name>
+"$WORKAREA_ROOT/bin/resume-task.sh" <exact-task-name>
 ```
 
 Stream output to user in real-time showing progress for:
@@ -120,7 +127,7 @@ User: /resume-task airflow
 
 Claude: Let me find the task matching "airflow"...
 
-[Runs ./bin/find-task.sh "airflow"]
+[Finds workarea root, runs $WORKAREA_ROOT/bin/find-task.sh "airflow"]
 
 Found task:
   Workspace: projects
@@ -147,7 +154,7 @@ Would you like me to restore this task? [Y/n]
 
 User: y
 
-[Navigates to workspace and runs ./bin/resume-task.sh temporal-airflow]
+[Navigates to workspace and runs $WORKAREA_ROOT/bin/resume-task.sh temporal-airflow]
 
 ✓ Repository exists: repos/airflow
 ✓ Worktree already exists (updating...)
@@ -172,7 +179,7 @@ Next steps:
 ```
 User: /resume-task nonexistent-task
 
-Claude: [Runs ./bin/find-task.sh "nonexistent-task"]
+Claude: [Runs $WORKAREA_ROOT/bin/find-task.sh "nonexistent-task"]
 
 No tasks found matching "nonexistent-task".
 
@@ -277,9 +284,16 @@ The command could be enhanced to:
 
 ### Scripts Used
 
+**IMPORTANT:** Always find the workarea root dynamically, never hardcode paths.
+
+**Find workarea root first:**
+```bash
+WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/find-task.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
+```
+
 **1. Task Finder** (run first):
 ```bash
-./bin/find-task.sh "<pattern>"
+"$WORKAREA_ROOT/bin/find-task.sh" "<pattern>"
 ```
 - Searches all workspaces for matching tasks
 - Supports partial name matching
@@ -287,7 +301,7 @@ The command could be enhanced to:
 
 **2. Task Restorer** (run after finding):
 ```bash
-./bin/resume-task.sh <task-name> [workspace-path]
+"$WORKAREA_ROOT/bin/resume-task.sh" <task-name> [workspace-path]
 ```
 - Restores repositories and worktrees
 - Can be called from anywhere if workspace-path is provided
