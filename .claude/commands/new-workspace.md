@@ -21,6 +21,15 @@ Create a new workspace for organizing related tasks.
 
 When this command is invoked:
 
+### 0. Find workarea root (REQUIRED)
+
+**CRITICAL:** Find the WORKAREA ROOT dynamically - do NOT hardcode paths.
+
+First, find the workarea root (look for the directory containing `bin/new-workspace.sh`):
+```bash
+WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/new-workspace.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
+```
+
 1. **Parse the input**
    - Extract workspace name (required)
    - Extract description (optional, defaults to "Workspace for <name>")
@@ -36,7 +45,7 @@ When this command is invoked:
    - If exists, inform user and suggest alternatives
 
 4. **Execute the creation script**
-   - Run: `./bin/new-workspace.sh <name> "<description>"`
+   - Run: `"$WORKAREA_ROOT/bin/new-workspace.sh" <name> "<description>"`
    - The script creates:
      - `workspaces/<name>/` directory
      - `workspaces/<name>/tasks/` for active tasks

@@ -29,7 +29,14 @@ cd workspaces/personal
 
 When this command is invoked:
 
-### 0. Verify workspace context (REQUIRED)
+### 0. Find workarea root and verify workspace context (REQUIRED)
+
+**CRITICAL:** Find the WORKAREA ROOT dynamically - do NOT hardcode paths.
+
+First, find the workarea root (look for the directory containing `bin/setup-task-workspace.sh`):
+```bash
+WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/setup-task-workspace.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
+```
 
 Check if currently in a workspace (`workspaces/<name>/`).
 
@@ -69,7 +76,7 @@ Check if currently in a workspace (`workspaces/<name>/`).
    - Support both HTTPS and SSH formats
 
 5. **Execute setup script**
-   - Run `./bin/setup-task-workspace.sh` with:
+   - Run `"$WORKAREA_ROOT/bin/setup-task-workspace.sh"` with:
      - Task name (sanitized)
      - List of repository URLs
    - Show the script output to the user
@@ -82,7 +89,7 @@ Check if currently in a workspace (`workspaces/<name>/`).
    - Generate task name from PR title (sanitized)
 
 4. **Execute setup script with PR URL**
-   - Run `./bin/setup-task-workspace.sh` with:
+   - Run `"$WORKAREA_ROOT/bin/setup-task-workspace.sh"` with:
      - Task name (from PR title)
      - PR URL (script handles branch detection automatically)
    - Show the script output to the user

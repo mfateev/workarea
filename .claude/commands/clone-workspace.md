@@ -38,6 +38,15 @@ This command enables the workspace sharing workflow:
 
 When this command is invoked:
 
+### 0. Find workarea root (REQUIRED)
+
+**CRITICAL:** Find the WORKAREA ROOT dynamically - do NOT hardcode paths.
+
+First, find the workarea root (look for the directory containing `bin/clone-workspace.sh`):
+```bash
+WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/clone-workspace.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
+```
+
 ### 1. Parse the input
 
 Determine if the input is:
@@ -47,7 +56,7 @@ Determine if the input is:
 
 ### 2. Execute the clone script
 
-Run `./bin/clone-workspace.sh` with the provided arguments.
+Run `"$WORKAREA_ROOT/bin/clone-workspace.sh"` with the provided arguments.
 
 The script will:
 - Resolve the repository URL
@@ -77,7 +86,7 @@ User: /clone-workspace workspace-issues
 
 Claude: I'll clone the workspace-issues repository.
 
-[Runs ./bin/clone-workspace.sh workspace-issues]
+[Finds workarea root, runs $WORKAREA_ROOT/bin/clone-workspace.sh workspace-issues]
 
 Resolving repository...
   Repository: https://github.com/user/workspace-issues

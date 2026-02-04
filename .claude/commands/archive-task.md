@@ -40,8 +40,16 @@ When this command is invoked:
 
 **CRITICAL:** Use find-task.sh to locate the task before attempting any operations.
 
+**CRITICAL:** Find the WORKAREA ROOT dynamically - do NOT hardcode paths.
+
+First, find the workarea root (look for the directory containing `bin/find-task.sh`):
 ```bash
-./bin/find-task.sh "<task-pattern>"
+WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/find-task.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
+```
+
+Then run the find-task script:
+```bash
+"$WORKAREA_ROOT/bin/find-task.sh" "<task-pattern>"
 ```
 
 **If no matches found:**
@@ -117,7 +125,7 @@ Navigate to the workspace first, then run:
 
 ```bash
 cd <workspace-path>
-./bin/archive-task.sh <exact-task-name>
+"$WORKAREA_ROOT/bin/archive-task.sh" <exact-task-name>
 ```
 
 Stream output to user in real-time showing:
@@ -145,7 +153,7 @@ User: /archive-task async-await
 
 Claude: Let me find the task matching "async-await"...
 
-[Runs ./bin/find-task.sh "async-await"]
+[Finds workarea root, runs $WORKAREA_ROOT/bin/find-task.sh "async-await"]
 
 Found task:
   Workspace: issues
@@ -171,7 +179,7 @@ Are you sure you want to proceed? [y/N]
 
 User: y
 
-[Navigates to workspace and runs ./bin/archive-task.sh async-await]
+[Navigates to workspace and runs $WORKAREA_ROOT/bin/archive-task.sh async-await]
 
 Step 1: Checking worktrees for uncommitted/unpushed changes...
   ✓ sdk-java: Clean
@@ -212,7 +220,7 @@ To restore (if needed):
 ```
 User: /archive-task nonexistent
 
-Claude: [Runs ./bin/find-task.sh "nonexistent"]
+Claude: [Finds workarea root, runs $WORKAREA_ROOT/bin/find-task.sh "nonexistent"]
 
 No tasks found matching "nonexistent".
 
@@ -231,7 +239,7 @@ Use: /archive-task <task-name-or-pattern>
 ### Uncommitted Changes
 
 ```
-Claude: [Runs ./bin/archive-task.sh async-await]
+Claude: [Runs $WORKAREA_ROOT/bin/archive-task.sh async-await]
 
 Step 1: Checking worktrees for uncommitted/unpushed changes...
   ⚠ sdk-java: Has uncommitted changes
@@ -254,7 +262,7 @@ What would you like to do?
 ### Unpushed Commits
 
 ```
-Claude: [Runs ./bin/archive-task.sh async-await]
+Claude: [Runs $WORKAREA_ROOT/bin/archive-task.sh async-await]
 
 Step 1: Checking worktrees for uncommitted/unpushed changes...
   ⚠ sdk-java: Has unpushed commits
@@ -280,7 +288,7 @@ Claude: Let me push those commits for you...
 [Runs git push in the worktree]
 
 Now let me try archiving again...
-[Runs ./bin/archive-task.sh async-await]
+[Runs $WORKAREA_ROOT/bin/archive-task.sh async-await]
 
 ✓ All worktrees are clean
 ...
@@ -370,14 +378,21 @@ Completed tasks that have been archived.
 
 ### Scripts Used
 
+**IMPORTANT:** Always find the workarea root dynamically, never hardcode paths.
+
+**Find workarea root first:**
+```bash
+WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/find-task.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
+```
+
 **Archive Script:**
 ```bash
-./bin/archive-task.sh <task-name> [workspace-path]
+"$WORKAREA_ROOT/bin/archive-task.sh" <task-name> [workspace-path]
 ```
 
 **Task Finder (used first):**
 ```bash
-./bin/find-task.sh "<pattern>"
+"$WORKAREA_ROOT/bin/find-task.sh" "<pattern>"
 ```
 
 ### Directory Structure

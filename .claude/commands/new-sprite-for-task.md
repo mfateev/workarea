@@ -33,9 +33,16 @@ When this command is invoked:
 
 **CRITICAL:** Do NOT proceed until you have found the correct task.
 
-Run this search command FIRST to locate the task:
+**CRITICAL:** Find the WORKAREA ROOT dynamically - do NOT hardcode paths.
+
+First, find the workarea root (look for the directory containing `bin/find-task.sh`):
 ```bash
-cd /Users/maxim/workarea && ./bin/find-task.sh "<task-pattern>"
+WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/find-task.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
+```
+
+Then run the find-task script:
+```bash
+"$WORKAREA_ROOT/bin/find-task.sh" "<task-pattern>"
 ```
 
 **If no matches found:**
@@ -198,7 +205,7 @@ User: /new-sprite-for-task airflow
 
 Claude: Let me find the task matching "airflow"...
 
-[Runs ./bin/find-task.sh "airflow"]
+[Finds workarea root, runs $WORKAREA_ROOT/bin/find-task.sh "airflow"]
 
 Found task:
   Workspace: projects
