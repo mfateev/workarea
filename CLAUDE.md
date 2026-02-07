@@ -6,6 +6,29 @@
 
 ---
 
+## Hook Protection
+
+**CRITICAL:** Hooks in `.claude/hooks/` provide essential safety checks. They must NEVER be disabled, renamed, or bypassed.
+
+**Prohibited Actions:**
+- ❌ **NEVER** disable hooks by renaming them (e.g., `.sh.disabled`)
+- ❌ **NEVER** move hooks out of `.claude/hooks/`
+- ❌ **NEVER** use `dangerouslyDisableSandbox` to bypass hooks
+- ❌ **NEVER** modify hook permissions to prevent execution
+- ❌ **NEVER** delete hooks
+
+**If a hook blocks an operation:**
+1. Understand WHY the hook is blocking it
+2. **ASK THE USER** what to do - don't make assumptions or try workarounds
+3. If the user confirms the operation is safe, fix the hook to allow the legitimate use case
+4. If the hook has a bug, fix the hook itself - don't disable it
+
+**When uncertain about any operation, ASK THE USER first.** Never disable safety mechanisms to proceed when you're not sure what to do.
+
+Hooks exist to prevent destructive operations and maintain repository integrity. Bypassing them can lead to data loss, repository corruption, or violating the workarea architecture.
+
+---
+
 ## Git Safety Rules
 
 **CRITICAL:** Before running any destructive git command, ALWAYS verify you are in the correct repository.
