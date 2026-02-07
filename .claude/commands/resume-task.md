@@ -41,16 +41,9 @@ When this command is invoked:
 
 **CRITICAL:** Do NOT attempt to read task.json or TASK_STATUS.md until you have found the correct task path.
 
-**CRITICAL:** Find the WORKAREA ROOT dynamically - do NOT hardcode paths.
-
-First, find the workarea root (look for the directory containing `bin/find-task.sh`):
+Run the find-task script directly (it auto-detects the workarea root):
 ```bash
-WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/find-task.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
-```
-
-Then run the find-task script:
-```bash
-"$WORKAREA_ROOT/bin/find-task.sh" "<task-pattern>"
+./bin/find-task.sh "<task-pattern>"
 ```
 
 This will:
@@ -81,19 +74,11 @@ Once you have the task path:
   - Created date
 - Show preview of `TASK_STATUS.md` (first 20 lines) to give context
 
-### 3. Confirm with user
-- Ask user to confirm they want to restore this task
-- Show what will be done:
-  - Repositories to be cloned
-  - Branches to be checked out
-  - Fork remotes to be added
-
-### 4. Execute restoration script
+### 3. Execute restoration script
 
 Navigate to the workspace first, then run the script:
 ```bash
-cd <workspace-path>
-"$WORKAREA_ROOT/bin/resume-task.sh" <exact-task-name>
+cd <workspace-path> && ./bin/resume-task.sh <exact-task-name>
 ```
 
 Stream output to user in real-time showing progress for:
@@ -102,18 +87,18 @@ Stream output to user in real-time showing progress for:
 - Worktree creation
 - Branch checkout
 
-### 5. Verify restoration
+### 4. Verify restoration
 - Check that worktrees were created successfully
 - Verify branches are checked out correctly
 - Test that tracking branches are set up
 
-### 6. Pull latest from origin
+### 5. Pull latest from origin
 - For each repository worktree in the task:
   - Run `git pull` to fetch and merge latest from tracking remote
   - Show pull output (new commits, already up to date, etc.)
 - This ensures the workspace has the latest code before working
 
-### 7. Provide next steps
+### 6. Provide next steps
 - Navigate to the task directory
 - Show current git status
 - Remind user to:
@@ -127,7 +112,7 @@ User: /resume-task airflow
 
 Claude: Let me find the task matching "airflow"...
 
-[Finds workarea root, runs $WORKAREA_ROOT/bin/find-task.sh "airflow"]
+[Runs ./bin/find-task.sh "airflow"]
 
 Found task:
   Workspace: projects
@@ -144,17 +129,7 @@ Task Information:
   Repositories: 1
     - airflow (branch: main, fork: user)
 
-Task Status Preview:
-  > # Task Status: Temporal Airflow
-  >
-  > **Last Updated:** 2026-01-10
-  > ...
-
-Would you like me to restore this task? [Y/n]
-
-User: y
-
-[Navigates to workspace and runs $WORKAREA_ROOT/bin/resume-task.sh temporal-airflow]
+[Runs cd workspaces/projects && ./bin/resume-task.sh temporal-airflow]
 
 ✓ Repository exists: repos/airflow
 ✓ Worktree already exists (updating...)
@@ -179,7 +154,7 @@ Next steps:
 ```
 User: /resume-task nonexistent-task
 
-Claude: [Runs $WORKAREA_ROOT/bin/find-task.sh "nonexistent-task"]
+Claude: [Runs ./bin/find-task.sh "nonexistent-task"]
 
 No tasks found matching "nonexistent-task".
 
@@ -284,27 +259,22 @@ The command could be enhanced to:
 
 ### Scripts Used
 
-**IMPORTANT:** Always find the workarea root dynamically, never hardcode paths.
-
-**Find workarea root first:**
-```bash
-WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/find-task.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
-```
+Scripts auto-detect the workarea root, so call them directly with relative paths.
 
 **1. Task Finder** (run first):
 ```bash
-"$WORKAREA_ROOT/bin/find-task.sh" "<pattern>"
+./bin/find-task.sh "<pattern>"
 ```
 - Searches all workspaces for matching tasks
 - Supports partial name matching
 - Outputs `MATCH:workspace:task:path` for machine parsing
 
-**2. Task Restorer** (run after finding):
+**2. Task Restorer** (run after finding, from workspace directory):
 ```bash
-"$WORKAREA_ROOT/bin/resume-task.sh" <task-name> [workspace-path]
+cd <workspace-path> && ./bin/resume-task.sh <task-name>
 ```
 - Restores repositories and worktrees
-- Can be called from anywhere if workspace-path is provided
+- Must be run from workspace directory
 
 ### Configuration File Format
 Reads: `tasks/<task-name>/task.json`

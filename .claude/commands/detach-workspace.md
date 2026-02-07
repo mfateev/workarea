@@ -38,15 +38,6 @@ Cleanly remove a workspace from your local machine while ensuring:
 
 When this command is invoked:
 
-### 0. Find workarea root (REQUIRED)
-
-**CRITICAL:** Find the WORKAREA ROOT dynamically - do NOT hardcode paths.
-
-First, find the workarea root (look for the directory containing `bin/detach-workspace.sh`):
-```bash
-WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/detach-workspace.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
-```
-
 ### 1. Identify workspace
 
 - If workspace name provided, use it
@@ -55,7 +46,7 @@ WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/detach-workspa
 
 ### 2. Execute detach script
 
-Run `"$WORKAREA_ROOT/bin/detach-workspace.sh"` with the workspace name.
+Run `./bin/detach-workspace.sh` with the workspace name.
 
 The script performs these checks:
 
@@ -84,7 +75,7 @@ User: /detach-workspace issues
 
 Claude: I'll safely detach the 'issues' workspace.
 
-[Finds workarea root, runs $WORKAREA_ROOT/bin/detach-workspace.sh issues]
+[Runs ./bin/detach-workspace.sh issues]
 
 ========================================
 Detaching workspace: issues

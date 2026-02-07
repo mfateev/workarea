@@ -235,7 +235,7 @@ workarea/
   - Sets up bin symlink for script access
   - **Run this first if you don't have a workspace!**
 
-- **`/workarea-tasks`** - List tasks or workspaces
+- **`/list-workarea-tasks`** - List tasks or workspaces
   - At workarea root: Shows available workspaces
   - Inside a workspace: Shows tasks in that workspace
   - **Recommended:** Start sessions with this command
@@ -274,9 +274,9 @@ cd workspaces/personal
 
 ```bash
 cd workarea
-/workarea-tasks          # Shows available workspaces
+/list-workarea-tasks          # Shows available workspaces
 cd workspaces/<name>
-/workarea-tasks          # Shows tasks in this workspace
+/list-workarea-tasks          # Shows tasks in this workspace
 /resume-task <task>      # Resume a task
 ```
 
@@ -592,4 +592,4 @@ Claude understands this workspace structure and can:
 - Create commits and PRs following the fork workflow
 - Track progress via TASK_STATUS.md
 
-**Start every session with `/workarea-tasks`** to see available workspaces and tasks.
+**Start every session with `/list-workarea-tasks`** to see available workspaces and tasks.

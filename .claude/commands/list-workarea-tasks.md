@@ -26,16 +26,9 @@ When this command is invoked:
 
 ### 1. Execute list-tasks script
 
-**CRITICAL:** Find the WORKAREA ROOT dynamically - do NOT hardcode paths.
-
-First, find the workarea root (look for the directory containing `bin/list-tasks.sh`):
+Run the list-tasks script directly (it auto-detects the workarea root):
 ```bash
-WORKAREA_ROOT="$(d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/bin/list-tasks.sh" ] && echo "$d" && break; d="$(dirname "$d")"; done)"
-```
-
-Then run the list-tasks script:
-```bash
-"$WORKAREA_ROOT/bin/list-tasks.sh"
+./bin/list-tasks.sh
 ```
 
 The script automatically detects context:
@@ -113,7 +106,7 @@ Commands:
 ```
 User: /workarea-tasks
 
-Claude: [Finds workarea root, runs $WORKAREA_ROOT/bin/list-tasks.sh]
+Claude: [Runs ./bin/list-tasks.sh]
 
 === Available Workspaces ===
 
@@ -138,7 +131,7 @@ User: 1
 Claude: Navigating to workspace: default
 cd workspaces/default
 
-[Runs $WORKAREA_ROOT/bin/list-tasks.sh again]
+[Runs ./bin/list-tasks.sh again]
 
 === Tasks in workspace: default ===
 
@@ -158,7 +151,7 @@ Which task would you like to work on?
 ```
 User: /workarea-tasks
 
-Claude: [Finds workarea root, runs $WORKAREA_ROOT/bin/list-tasks.sh]
+Claude: [Runs ./bin/list-tasks.sh]
 
 === Tasks in workspace: default ===
 
@@ -185,7 +178,7 @@ Claude: Resuming task: my-feature
 ```
 User: /workarea-tasks
 
-Claude: [Finds workarea root, runs $WORKAREA_ROOT/bin/list-tasks.sh]
+Claude: [Runs ./bin/list-tasks.sh]
 
 === Available Workspaces ===
 
