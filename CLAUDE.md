@@ -132,11 +132,13 @@ git checkout feature-branch  # Safe: correct repo
 
 **When resuming tasks (`/resume-task`):**
 1. **Check task.json** for fork_url and fork_owner
-2. **If missing (fork_url is null):**
+2. **Check if repository is user-owned:** Look for `"owner_repo": true` in repository config
+3. **If fork is missing (fork_url is null) AND not user-owned:**
    - STOP and create a fork: `gh repo fork <upstream-url>`
    - Update task.json with fork information
    - Clone from fork, not upstream
-3. **Never proceed** with restoration if no fork is configured
+4. **If user-owned repository:** Proceed with restoration (fork-first policy does not apply)
+5. **Never proceed** with restoration if no fork is configured (unless user-owned)
 
 ### Why This Matters
 
@@ -166,14 +168,26 @@ git fetch upstream
 ### Enforcement Rules
 
 **Claude Code MUST:**
-- ❌ **NEVER** clone directly from upstream
-- ❌ **NEVER** set `fork_url: null` in task.json
-- ❌ **NEVER** proceed with task restoration without a fork
-- ✅ **ALWAYS** create forks before any work begins
-- ✅ **ALWAYS** push to fork remotes, never to origin/upstream
+- ❌ **NEVER** clone directly from upstream (unless exception applies)
+- ❌ **NEVER** set `fork_url: null` in task.json (unless exception applies)
+- ❌ **NEVER** proceed with task restoration without a fork (unless exception applies)
+- ✅ **ALWAYS** create forks before any work begins (unless exception applies)
+- ✅ **ALWAYS** push to fork remotes, never to origin/upstream (unless exception applies)
 - ✅ **ALWAYS** update task.json with fork information
 
-**Exception:** Internal/private repositories where you have write access may skip fork creation if explicitly confirmed by the user.
+**Exceptions (Fork-First Policy Does Not Apply):**
+
+1. **User-Owned Repositories:** Repositories under the user's own GitHub account where they have direct write access
+   - Mark in task.json with: `"owner_repo": true` and `"notes": "This is a user-owned repository. Fork-first policy does not apply."`
+   - Example: `https://github.com/mfateev/codex-temporal-go` (user's own project)
+
+2. **Internal/Private Repositories:** Private repositories where the user has write access
+   - Must be explicitly confirmed by the user before skipping fork creation
+
+**Identifying User-Owned Repos:**
+- Check if `owner_repo: true` is set in task.json repository configuration
+- Look for notes indicating "user-owned" or "fork-first policy does not apply"
+- When in doubt, ask the user if the repository is their own
 
 ---
 
