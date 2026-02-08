@@ -52,9 +52,18 @@ This will:
 - Handle partial matches (e.g., "airflow" matches "temporal-airflow")
 
 **If no matches found:**
-- First, pull the workarea repo to sync any tasks created on other machines:
+- First, pull the workarea repo AND all workspace repos to sync any tasks created on other machines:
   ```bash
+  # Pull main workarea repo
   cd /Users/maxim/workarea && git pull
+
+  # Pull each workspace repo (they are separate git repos)
+  for ws in workspaces/*/; do
+    if [ -d "$ws/.git" ]; then
+      echo "Pulling $ws..."
+      git -C "$ws" pull
+    fi
+  done
   ```
 - Retry the find-task script after pulling
 - If still not found, show available tasks across all workspaces
@@ -157,9 +166,18 @@ Next steps:
 
 ### Task Not Found
 
-**FIRST:** Pull the workarea repo in case the task was created on another machine:
+**FIRST:** Pull the workarea repo AND all workspace repos in case the task was created on another machine:
 ```bash
+# Pull main workarea repo
 cd /Users/maxim/workarea && git pull
+
+# Pull each workspace repo (they are separate git repos)
+for ws in workspaces/*/; do
+  if [ -d "$ws/.git" ]; then
+    echo "Pulling $ws..."
+    git -C "$ws" pull
+  fi
+done
 ```
 
 Then retry the find-task script. If still not found:
