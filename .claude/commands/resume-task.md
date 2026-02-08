@@ -52,7 +52,12 @@ This will:
 - Handle partial matches (e.g., "airflow" matches "temporal-airflow")
 
 **If no matches found:**
-- Show available tasks across all workspaces
+- First, pull the workarea repo to sync any tasks created on other machines:
+  ```bash
+  cd /Users/maxim/workarea && git pull
+  ```
+- Retry the find-task script after pulling
+- If still not found, show available tasks across all workspaces
 - Ask user to clarify which task they meant
 
 **If multiple matches found:**
@@ -151,10 +156,18 @@ Next steps:
 ## Error Handling
 
 ### Task Not Found
+
+**FIRST:** Pull the workarea repo in case the task was created on another machine:
+```bash
+cd /Users/maxim/workarea && git pull
+```
+
+Then retry the find-task script. If still not found:
 ```
 User: /resume-task nonexistent-task
 
-Claude: [Runs ./bin/find-task.sh "nonexistent-task"]
+Claude: [Runs git pull in workarea]
+[Runs ./bin/find-task.sh "nonexistent-task"]
 
 No tasks found matching "nonexistent-task".
 

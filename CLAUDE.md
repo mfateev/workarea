@@ -592,6 +592,16 @@ gh pr create --repo temporalio/sdk-java --head maxim:feature-branch
 
 ## Troubleshooting
 
+### "Task not found"
+
+If `/resume-task` can't find a task that should exist, the task may have been created on another machine and not synced yet. Pull the workarea repository first:
+```bash
+cd /Users/maxim/workarea
+git pull
+```
+
+Then retry the `/resume-task` command. The task configuration files (`task.json`, `TASK_STATUS.md`) are tracked in git and will be synced.
+
 ### "Not in a workspace"
 
 Scripts require workspace context. Navigate to a workspace first:
