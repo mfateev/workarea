@@ -390,7 +390,14 @@ When a task is complete:
 1. Remove git worktrees from the task folder
 2. Move task folder to `archived/`
 3. Update `archived/README.md` with task entry
-4. Commit and push changes
+4. **Commit and push changes to the WORKSPACE repo immediately:**
+   ```bash
+   cd workspaces/<workspace>
+   git add -A
+   git commit -m "Archive task: <task-name>"
+   git push
+   ```
+   **CRITICAL:** Workspaces are separate git repos. Uncommitted archival changes cause sync issues.
 
 ## Task Files
 
@@ -589,6 +596,13 @@ gh pr create --repo temporalio/sdk-java --head maxim:feature-branch
 4. **Update TASK_STATUS.md**: Always maintain context for continuity
 5. **Verify Remotes**: Run `git remote -v` before pushing to confirm you're pushing to your fork
 6. **Archive, Don't Delete**: Move completed tasks to `archived/` for history
+7. **Commit Workspace Changes Immediately (CRITICAL)**: Workspaces are separate git repos. Any changes to workspace files MUST be committed and pushed right away:
+   - Task archival (moving to `archived/`)
+   - New task creation (`task.json`, `TASK_STATUS.md`)
+   - Task status updates
+   - Any modifications to workspace tracked files
+
+   Uncommitted changes cause divergent branches and sync issues across machines.
 
 ## Troubleshooting
 
