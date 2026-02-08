@@ -103,6 +103,16 @@ The `repos/` directory contains shared git clones that should stay on the main b
 - Branch changes in `repos/` can break existing worktrees
 - All development work should be isolated in task worktrees
 
+**Repository Requirements (CRITICAL):**
+- **ALL repositories in `repos/` MUST have a `main` branch**
+- When cloning, repos must be left on `main` branch
+- For new/user-owned repos without a `main` branch:
+  1. Create a `main` branch: `git branch main`
+  2. Push it: `git push origin main`
+  3. Set as default on GitHub: `gh repo edit <owner>/<repo> --default-branch main`
+  4. Ensure `repos/<repo>` is on `main`, not a feature branch
+- Feature branches are ONLY checked out in task worktrees, never in `repos/`
+
 ### Example Safe Workflow
 
 ```bash
