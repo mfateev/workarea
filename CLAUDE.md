@@ -33,6 +33,24 @@ Hooks exist to prevent destructive operations and maintain repository integrity.
 
 **CRITICAL:** Before running any destructive git command, ALWAYS verify you are in the correct repository.
 
+### No Force Without Explicit Confirmation
+
+**CRITICAL:** NEVER use any git force flag without getting explicit confirmation from the user first.
+
+**Prohibited without explicit user approval:**
+- ❌ `git add -f` / `git add --force` - Force-adding files bypasses .gitignore
+- ❌ `git push -f` / `git push --force` / `git push --force-with-lease` - Force-pushing overwrites remote history
+- ❌ `git checkout -f` / `git checkout --force` - Force-checkout discards local changes
+- ❌ `git clean -f` - Force-deletes untracked files
+- ❌ `git reset --hard` - Force-resets working directory
+- ❌ Any other `--force` or `-f` flag on git commands
+
+**When you encounter a situation that seems to require force:**
+1. **STOP** - Do not use the force flag
+2. **Explain the situation** to the user (what you're trying to do and why it's blocked)
+3. **Wait for explicit confirmation** before proceeding with force
+4. **If the user approves**, use the minimum force necessary
+
 ### Dangerous Commands (Require Verification)
 
 These commands can cause data loss or repository corruption if run in the wrong location:
@@ -247,33 +265,51 @@ This document explains the workspace-based workflow for managing multiple git re
 
 ## Overview
 
-This repository provides **reusable tooling** for task management across multiple git repositories. User-specific tasks and workspaces are gitignored, making this repository shareable.
+This repository provides **reusable tooling** for task management across multiple git repositories. User-specific tasks and workspaces are gitignored from the workarea repo, because each workspace is its own independent git repository.
 
 ```
-workarea/
-├── bin/                 # Shared utility scripts (tracked)
-├── repos/               # Git repository clones (shared, gitignored)
-├── .claude/             # Claude skills and configuration (tracked)
-├── workspaces/          # Container for user workspaces
-│   ├── .gitkeep         # Keeps folder in git
-│   └── <name>/          # Individual workspaces (gitignored)
+workarea/                    # Git repo: workarea (tooling + config)
+├── bin/                     # Shared utility scripts (tracked in workarea repo)
+├── repos/                   # Git repository clones (shared, gitignored)
+├── .claude/                 # Claude skills and configuration (tracked in workarea repo)
+├── workspaces/              # Container for user workspaces
+│   ├── .gitkeep             # Keeps folder in git
+│   └── <name>/              # ⚠️  SEPARATE GIT REPO (gitignored by workarea)
 │       ├── bin -> ../../bin  # Symlink to shared scripts
-│       ├── tasks/            # Active tasks
+│       ├── tasks/            # Active tasks (tracked in workspace repo)
 │       │   └── <task>/       # Task folder
-│       │       ├── task.json      # Machine config
-│       │       ├── TASK_STATUS.md # Human notes
-│       │       └── <repo>/        # Git worktree
+│       │       ├── task.json      # Machine config (tracked in workspace repo)
+│       │       ├── TASK_STATUS.md # Human notes (tracked in workspace repo)
+│       │       ├── CLAUDE.md      # Task guidance (tracked in workspace repo)
+│       │       └── <repo>/        # Git worktree (gitignored by workspace repo)
 │       ├── archived/         # Completed tasks
 │       └── README.md         # Workspace description
-└── CLAUDE.md            # This documentation (tracked)
+└── CLAUDE.md                # This documentation (tracked in workarea repo)
 ```
+
+### Multiple Git Repos (IMPORTANT)
+
+There are **three layers of git repositories** in this structure. Do NOT confuse them:
+
+| Layer | Location | Example Remote | Tracks |
+|-------|----------|---------------|--------|
+| **Workarea repo** | `workarea/` | `mfateev/workarea` | Shared tooling: `bin/`, `.claude/`, `CLAUDE.md` |
+| **Workspace repo** | `workspaces/<name>/` | `mfateev/workspace-projects` | Task metadata: `task.json`, `TASK_STATUS.md`, `CLAUDE.md` |
+| **Task worktree** | `workspaces/<name>/tasks/<task>/<repo>/` | varies per project | Actual project source code |
+
+**When committing task metadata** (task.json, TASK_STATUS.md, task CLAUDE.md), commit to the **workspace repo** (`workspaces/<name>/`), NOT the workarea root repo. The workarea `.gitignore` excludes `workspaces/*`, so these files are invisible to the workarea repo.
+
+**When committing tooling changes** (bin scripts, .claude skills, root CLAUDE.md), commit to the **workarea repo** (`workarea/`).
+
+**When committing source code**, commit in the **task worktree** (`workspaces/<name>/tasks/<task>/<repo>/`).
 
 ## Key Concepts
 
-- **Workspaces**: Isolated containers for related tasks (e.g., "personal", "work", "project-x")
+- **Workspaces**: Isolated containers for related tasks, each is its **own git repository** (e.g., `mfateev/workspace-projects`)
 - **Shared Repos**: All workspaces share the same `repos/` directory to save disk space
 - **Tasks**: Each task has its own folder with git worktrees for each repository
 - **Portability**: Task configuration in `task.json` allows restoring workspaces on any machine
+- **Three repo layers**: Workarea repo (tooling) > Workspace repo (task metadata) > Task worktrees (source code)
 
 ## Available Commands
 
