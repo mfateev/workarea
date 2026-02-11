@@ -52,5 +52,8 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "temporal-developer@temporal-marketplace": true
   }
 }
