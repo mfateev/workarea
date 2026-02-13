@@ -20,8 +20,8 @@ Create a new sprite (sprite.dev) environment and set it up for a specific task.
 
 This command creates a fully-configured sprite environment for working on a task:
 - Creates a new sprite with a name based on the task
-- Copies git SSH key to enable repository access
-- Sets up .bashrc for proper interactive shell behavior
+- Authenticates with GitHub via `gh auth login`
+- Sets up .bashrc with vi mode and persistent history
 - Clones the workarea and workspace repositories
 - Resumes the specified task
 
@@ -102,43 +102,61 @@ Generate a sanitized sprite name (lowercase, alphanumeric and dashes only):
 sprite create "<sprite-name>" -skip-console
 ```
 
-### 6. Copy SSH key to sprite
+### 6. Update .bashrc
 
-**IMPORTANT:** Sprite runs as user `sprite` with home directory `/home/sprite`, NOT `/root`.
-
-Create .ssh directory and copy keys:
+Append shell configuration to .bashrc:
 ```bash
-sprite exec -s "<sprite-name>" mkdir -p /home/sprite/.ssh
-sprite exec -s "<sprite-name>" -file ~/.ssh/id_ed25519:/home/sprite/.ssh/id_ed25519 chmod 600 /home/sprite/.ssh/id_ed25519
-sprite exec -s "<sprite-name>" -file ~/.ssh/id_ed25519.pub:/home/sprite/.ssh/id_ed25519.pub chmod 644 /home/sprite/.ssh/id_ed25519.pub
+sprite exec -s "<sprite-name>" bash -c 'cat >> /home/sprite/.bashrc << '\''EOF'\''
+
+# Vi keybindings
+set -o vi
+
+# Persistent history
+HISTSIZE=10000
+HISTFILESIZE=20000
+HISTCONTROL=ignoredups:erasedups
+shopt -s histappend
+PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+EOF'
 ```
 
-If id_ed25519 doesn't exist, try id_rsa:
+### 7. Authenticate with GitHub
+
+**IMPORTANT:** This step requires user interaction in the sprite console.
+
+First, append a welcome message to .bashrc that will display when the user enters the console:
 ```bash
-sprite exec -s "<sprite-name>" -file ~/.ssh/id_rsa:/home/sprite/.ssh/id_rsa chmod 600 /home/sprite/.ssh/id_rsa
-sprite exec -s "<sprite-name>" -file ~/.ssh/id_rsa.pub:/home/sprite/.ssh/id_rsa.pub chmod 644 /home/sprite/.ssh/id_rsa.pub
+sprite exec -s "<sprite-name>" bash -c 'cat >> /home/sprite/.bashrc << '\''EOF'\''
+
+# Welcome message (remove after first login)
+echo ""
+echo "================================================"
+echo "  GitHub Authentication Required"
+echo "================================================"
+echo ""
+echo "  Run the following command to authenticate:"
+echo ""
+echo "    gh auth login"
+echo ""
+echo "  Select: GitHub.com → HTTPS → Login with a web browser"
+echo ""
+echo "  After authenticating, type 'exit' to continue sprite setup."
+echo "================================================"
+echo ""
+EOF'
 ```
 
-Configure SSH to not check host keys for github.com:
-```bash
-sprite exec -s "<sprite-name>" bash -c 'echo -e "Host github.com\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null" > /home/sprite/.ssh/config && chmod 600 /home/sprite/.ssh/config'
+Then tell the user you are opening a console and open it:
+```
+I'm opening a console to the sprite for GitHub authentication.
+Please run `gh auth login` inside the sprite, then type `exit` when done.
 ```
 
-### 7. Update .bashrc
-
-Prepend the interactive shell check to .bashrc:
 ```bash
-sprite exec -s "<sprite-name>" bash -c 'cat > /tmp/bashrc_prepend << '\''EOF'\''
-# If not running interactively, don'\''t do anything
-case $- in
-    *i*) ;;
-      *) return;;
-esac
-
-EOF
-cat /home/sprite/.bashrc >> /tmp/bashrc_prepend 2>/dev/null || true
-mv /tmp/bashrc_prepend /home/sprite/.bashrc'
+sprite console -s "<sprite-name>"
 ```
+
+After the user exits the console, ask them to confirm that authentication succeeded before proceeding to the next step.
 
 ### 8. Clone workarea repository
 
@@ -232,14 +250,20 @@ Claude: Creating sprite "temporal-airflow"...
 [Runs sprite create]
 ✓ Sprite created
 
-Setting up SSH keys...
-[Copies SSH keys to /home/sprite/.ssh/]
-✓ SSH keys configured
-
-Configuring .bashrc...
+Configuring .bashrc (vi mode, persistent history)...
 ✓ .bashrc updated
 
-Cloning workarea repository...
+Authenticating with GitHub...
+I'm opening a console to the sprite for GitHub authentication.
+Please run `gh auth login` inside the sprite, then type `exit` when done.
+
+[Opens sprite console - user runs gh auth login and exits]
+
+Did GitHub authentication succeed? [Y/n]
+
+User: y
+
+Claude: Cloning workarea repository...
 [Clones to /home/sprite/workarea]
 ✓ Workarea cloned
 
@@ -268,12 +292,16 @@ Would you like me to open a console to the sprite now? [Y/n]
 
 ## Error Handling
 
-### SSH Key Not Found
+### GitHub Authentication Failed
 ```
-Claude: Warning: Could not find SSH key at ~/.ssh/id_ed25519 or ~/.ssh/id_rsa
+Claude: It looks like GitHub authentication didn't complete successfully.
 
-You'll need to manually copy your SSH key to the sprite:
-  sprite exec -s <sprite-name> -file /path/to/key:/home/sprite/.ssh/id_ed25519 chmod 600 /home/sprite/.ssh/id_ed25519
+Would you like me to open the sprite console again so you can retry `gh auth login`?
+  sprite console -s <sprite-name>
+
+Or you can authenticate later:
+  sprite console -s <sprite-name>
+  gh auth login
 ```
 
 ### Sprite Creation Failed
@@ -334,6 +362,8 @@ Creating worktree with detached HEAD instead...
 
 5. **Worktree fallback**: If branch is already checked out, use `HEAD` to create detached worktree.
 
+6. **GitHub auth via `gh auth login`**: Authentication is done interactively in the sprite console, not by copying SSH keys.
+
 ## Notes
 
 ### Sprite Environment
@@ -347,14 +377,9 @@ Creating worktree with detached HEAD instead...
 - Maximum 30 characters
 - Use task name directly (workspace prefix not needed)
 
-### SSH Key Types
-- Prefers ed25519 keys over RSA
-- Checks for both types if first isn't found
-- Sets proper permissions (600 for private, 644 for public)
-
 ### Requirements
 - `sprite` CLI must be installed and authenticated (`sprite login`)
-- SSH key must exist locally
+- `gh` CLI must be available in the sprite for GitHub authentication
 - Internet connection for sprite creation and repo cloning
 
 ### Cleanup
