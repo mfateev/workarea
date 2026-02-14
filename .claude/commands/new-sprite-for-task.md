@@ -133,7 +133,17 @@ Generate a sanitized sprite name (lowercase, alphanumeric and dashes only):
 sprite create "<sprite-name>" -skip-console
 ```
 
-### 6. Update .bashrc
+### 6. Update .bash_profile and .bashrc
+
+Create .bash_profile to ensure .bashrc is loaded in login shells:
+```bash
+sprite exec -s "<sprite-name>" bash -c 'cat > /home/sprite/.bash_profile << '\''EOF'\''
+# Load .bashrc if it exists
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+EOF'
+```
 
 Append shell configuration to .bashrc:
 ```bash
@@ -153,41 +163,22 @@ EOF'
 
 ### 7. Authenticate with GitHub
 
-**IMPORTANT:** This step requires user interaction in the sprite console.
+**IMPORTANT:** This step requires user interaction in a separate terminal. Do NOT try to run `sprite console` from Claude Code — it is an interactive command that cannot work inside the agent.
 
-First, append a welcome message to .bashrc that will display when the user enters the console:
-```bash
-sprite exec -s "<sprite-name>" bash -c 'cat >> /home/sprite/.bashrc << '\''EOF'\''
+Prompt the user to run the following commands in a **separate terminal**:
 
-# Welcome message (remove after first login)
-echo ""
-echo "================================================"
-echo "  GitHub Authentication Required"
-echo "================================================"
-echo ""
-echo "  Run the following command to authenticate:"
-echo ""
-echo "    gh auth login"
-echo ""
-echo "  Select: GitHub.com → HTTPS → Login with a web browser"
-echo ""
-echo "  After authenticating, type 'exit' to continue sprite setup."
-echo "================================================"
-echo ""
-EOF'
+```
+Please open a separate terminal and run:
+
+1. sprite console -s <sprite-name>
+2. gh auth login
+   (Select: GitHub.com → HTTPS → Login with a web browser)
+3. exit
+
+Let me know when authentication is complete and I'll continue the setup.
 ```
 
-Then tell the user you are opening a console and open it:
-```
-I'm opening a console to the sprite for GitHub authentication.
-Please run `gh auth login` inside the sprite, then type `exit` when done.
-```
-
-```bash
-sprite console -s "<sprite-name>"
-```
-
-After the user exits the console, ask them to confirm that authentication succeeded before proceeding to the next step.
+Wait for the user to confirm before proceeding to the next step. Do NOT proceed automatically.
 
 ### 8. Clone workarea repository
 
