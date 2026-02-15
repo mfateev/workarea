@@ -153,6 +153,10 @@ EOF
       exit 2
     fi
 
+    # Allow cd (shell builtin, doesn't modify files)
+    if echo "$COMMAND" | grep -qE '^cd '; then
+      exit 0
+    fi
     # Allow safe read-only commands
     if echo "$COMMAND" | grep -qE '^(cat |head |tail |less |more |ls |find |grep |rg |wc |file |stat |du |tree |pwd)'; then
       exit 0  # Read-only commands
