@@ -1,7 +1,7 @@
 FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git ssh-client curl ca-certificates jq sudo vim && \
+    git ssh-client curl ca-certificates jq sudo vim locales && \
     # gh CLI
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
       -o /usr/share/keyrings/githubcli-archive-keyring.gpg && \
@@ -15,6 +15,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     npm install -g @anthropic-ai/claude-code && \
     # Cleanup
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# UTF-8 locale
+RUN sed -i 's/# en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && locale-gen
+ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 # GitHub SSH host key
 RUN ssh-keyscan github.com >> /etc/ssh/ssh_known_hosts 2>/dev/null
