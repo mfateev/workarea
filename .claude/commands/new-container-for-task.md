@@ -29,6 +29,7 @@ This command creates a fully-configured local Linux container for working on a t
 - SSH agent forwarding for GitHub auth (no manual `gh auth login`)
 - Clones only the task's repositories (not the whole workarea)
 - Checks out the correct branch
+- Copies task metadata (TASK_STATUS.md, CLAUDE.md, task.json) to `/home/dev/.task/`
 - Faster and simpler than cloud-based alternatives
 
 ## Instructions
@@ -178,6 +179,22 @@ container exec <task-name> bash -c 'cd /home/dev/<repo-name> && git checkout <br
 container exec <task-name> bash -c 'cd /home/dev/<repo-name> && git fetch upstream'
 ```
 
+### 6a. Copy task metadata into the container
+
+Copy `TASK_STATUS.md`, `CLAUDE.md`, and `task.json` from the host task directory into `/home/dev/.task/` inside the container so Claude Code has context when working inside the container.
+
+```bash
+container exec <task-name> bash -c 'mkdir -p /home/dev/.task'
+```
+
+For each file (`TASK_STATUS.md`, `CLAUDE.md`, `task.json`) that exists in the task directory on the host:
+```bash
+# Read the file content from host, write it into the container
+container exec <task-name> bash -c 'cat > /home/dev/.task/<filename> << ... (file contents) ...'
+```
+
+**Be careful with quoting** — file contents may contain single quotes, apostrophes, or special characters. Use appropriate heredoc quoting to avoid shell interpretation.
+
 ### 7. Confirm completion
 
 After all repos are cloned and branches checked out:
@@ -190,6 +207,7 @@ Task: <task-name>
 Workspace: <workspace>
 Repositories:
   - <repo-name> (branch: <branch>) -> /home/dev/<repo-name>
+Task metadata: /home/dev/.task/ (TASK_STATUS.md, CLAUDE.md, task.json)
 
 To connect:
   container exec -it <task-name> bash
@@ -310,7 +328,7 @@ container exec -it <task-name> bash
 - `sandbox:latest` image must be built (use `bin/build-sandbox-image.sh`)
 - SSH agent running on host with GitHub key loaded (`ssh-add -l` to verify)
 
-### Task management stays on host
-- `task.json` and `TASK_STATUS.md` live in the workspace repo on the host
-- The container only has source code repos
+### Task metadata
+- Canonical `task.json`, `TASK_STATUS.md`, and `CLAUDE.md` live in the workspace repo on the host
+- Read-only copies are placed in `/home/dev/.task/` inside the container for Claude Code context
 - Update task status from the host, not inside the container
