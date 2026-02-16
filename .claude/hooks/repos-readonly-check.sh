@@ -158,8 +158,12 @@ EOF
       exit 0
     fi
     # Allow safe read-only commands
-    if echo "$COMMAND" | grep -qE '^(cat |head |tail |less |more |ls |find |grep |rg |wc |file |stat |du |tree |pwd)'; then
-      exit 0  # Read-only commands
+    if echo "$COMMAND" | grep -qE '^(cat |head |tail |less |more |ls |find |grep |rg |wc |file |stat |du |tree |pwd|cd )'; then
+      exit 0  # Read-only commands (cd changes CWD but doesn't modify files)
+    fi
+    # Allow gh CLI read-only commands (API queries, not file operations)
+    if echo "$COMMAND" | grep -qE '^gh (api |repo view |repo list |pr view |pr list |issue view |issue list |auth status)'; then
+      exit 0
     fi
     if echo "$COMMAND" | grep -qE '^git (status|log|diff|show|branch|remote|worktree|fetch|config|rev-parse|describe|tag -l|stash list)'; then
       exit 0  # Safe git commands

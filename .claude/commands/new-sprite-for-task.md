@@ -172,13 +172,30 @@ Please open a separate terminal and run:
 
 1. sprite console -s <sprite-name>
 2. gh auth login
-   (Select: GitHub.com → HTTPS → Login with a web browser)
+   (Select: GitHub.com → SSH → Login with a web browser)
 3. exit
 
 Let me know when authentication is complete and I'll continue the setup.
 ```
 
 Wait for the user to confirm before proceeding to the next step. Do NOT proceed automatically.
+
+### 7a. Add GitHub SSH host key
+
+**IMPORTANT:** `gh auth login` generates SSH keys but does NOT add GitHub's server fingerprint to `known_hosts`. Without this step, all git SSH operations will fail with "Host key verification failed."
+
+```bash
+sprite exec -s "<sprite-name>" bash -c 'mkdir -p ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null'
+```
+
+Verify SSH connectivity:
+```bash
+sprite exec -s "<sprite-name>" bash -c 'ssh -T git@github.com 2>&1'
+```
+
+Expected output: `Hi <username>! You've successfully authenticated, but GitHub does not provide shell access.` (exit code 1 is normal).
+
+If this fails, ask the user to re-run `gh auth login` in the sprite console.
 
 ### 8. Clone workarea repository
 
