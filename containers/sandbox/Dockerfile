@@ -8,11 +8,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     echo "deb [signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
       > /etc/apt/sources.list.d/github-cli.list && \
     apt-get update && apt-get install -y gh && \
-    # Node.js 22 LTS
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
-    apt-get install -y nodejs && \
-    # Claude Code
-    npm install -g @anthropic-ai/claude-code && \
     # Cleanup
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -27,6 +22,10 @@ RUN ssh-keyscan github.com >> /etc/ssh/ssh_known_hosts 2>/dev/null
 RUN useradd -m -s /bin/bash -u 1000 dev && echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER dev
 WORKDIR /home/dev
+
+# Claude Code (native installer)
+RUN curl -fsSL https://claude.ai/install.sh | bash
+ENV PATH="/home/dev/.local/bin:${PATH}"
 
 # Global git pre-push hook: block pushes to non-origin remotes and protected branches
 RUN mkdir -p ~/.config/git/hooks && cat > ~/.config/git/hooks/pre-push << 'HOOKEOF'

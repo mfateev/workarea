@@ -148,7 +148,7 @@ The task directory path on the host is: `$WORKAREA_ROOT/workspaces/<workspace>/t
 
 Mount the host task directory to `/home/dev/task/` inside the container:
 ```bash
-container run -d --name "<task-name>" --ssh --cpus 4 --memory 4G \
+container run -d --name "<task-name>" --ssh --cpus 4 --memory 8G \
   -v <host-task-path>:/home/dev/task \
   sandbox:latest sleep infinity
 ```
