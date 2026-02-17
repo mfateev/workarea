@@ -27,6 +27,9 @@ WORKDIR /home/dev
 RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/home/dev/.local/bin:${PATH}"
 
+# Claude Code sandbox config: use weaker nested sandbox since container is already isolated
+RUN mkdir -p ~/.claude && echo '{"sandbox":{"enableWeakerNestedSandbox":true}}' > ~/.claude/settings.json
+
 # Global git pre-push hook: block pushes to non-origin remotes and protected branches
 RUN mkdir -p ~/.config/git/hooks && cat > ~/.config/git/hooks/pre-push << 'HOOKEOF'
 #!/bin/bash
