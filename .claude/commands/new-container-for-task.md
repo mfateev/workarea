@@ -185,6 +185,45 @@ container exec <task-name> bash -c 'cd /home/dev/<repo-name> && git checkout <br
 container exec <task-name> bash -c 'cd /home/dev/<repo-name> && git fetch upstream'
 ```
 
+### 6b. Generate CLAUDE.md in the container home directory
+
+Create `/home/dev/CLAUDE.md` so Claude Code picks up context when started from the home directory. Generate it dynamically based on the task:
+
+```markdown
+# Container Development Environment
+
+## Setup
+
+This is a sandboxed Linux container for the **<task-name>** task.
+
+- **User:** dev (sudo access)
+- **Shell:** bash (vi mode)
+- **SSH:** Agent forwarded from host — `ssh -T git@github.com` to verify
+
+## Repositories
+
+| Repo | Branch | Path | Fork | Upstream |
+|------|--------|------|------|----------|
+| <repo-name> | <branch> | /home/dev/<repo-name> | <fork_owner>/<repo-name> | <upstream-org>/<repo-name> |
+
+## Git Rules
+
+A global pre-push hook enforces:
+- **Only push to `origin`** (your fork) — pushes to other remotes are blocked
+- **Never push to `main` or `master`** — only feature/task branches allowed
+- Upstream remote has push disabled (`pushurl = DISABLE`)
+
+## Task Context
+
+See [/home/dev/task/CLAUDE.md](/home/dev/task/CLAUDE.md) for task-specific guidance.
+See [/home/dev/task/TASK_STATUS.md](/home/dev/task/TASK_STATUS.md) for current progress.
+```
+
+Write this into the container:
+```bash
+container exec <task-name> bash -c 'cat > /home/dev/CLAUDE.md << ... (generated content) ...'
+```
+
 ### 7. Confirm completion
 
 After all repos are cloned and branches checked out:
