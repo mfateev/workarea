@@ -27,6 +27,10 @@ WORKDIR /home/dev
 RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/home/dev/.local/bin:${PATH}"
 
+# Codex CLI (OpenAI)
+RUN curl -fsSL https://github.com/openai/codex/releases/latest/download/codex-linux-arm64.tar.gz \
+    | tar xz -C /tmp && mv /tmp/codex /home/dev/.local/bin/codex
+
 # Claude Code sandbox config: use weaker nested sandbox since container is already isolated
 RUN mkdir -p ~/.claude && echo '{"sandbox":{"enableWeakerNestedSandbox":true}}' > ~/.claude/settings.json
 
@@ -64,4 +68,4 @@ RUN chmod +x ~/.config/git/hooks/pre-push && \
 RUN echo '[ -f ~/.bashrc ] && . ~/.bashrc' > ~/.bash_profile
 
 # Shell config
-RUN echo '\n# Vi keybindings\nset -o vi\n\n# SSH agent from host\nexport SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock\n\n# History\nHISTSIZE=10000\nHISTFILESIZE=20000\nHISTCONTROL=ignoredups:erasedups\nshopt -s histappend\nPROMPT_COMMAND="history -a;$PROMPT_COMMAND"' >> ~/.bashrc
+RUN echo '\n# Vi keybindings\nset -o vi\n\n# SSH agent from host\nexport SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock\n\n# History\nHISTSIZE=10000\nHISTFILESIZE=20000\nHISTCONTROL=ignoredups:erasedups\nshopt -s histappend\nPROMPT_COMMAND="history -a;$PROMPT_COMMAND"\n\n# Dangerous mode aliases (container is already sandboxed)\nalias clauded="claude --dangerously-skip-permissions"\nalias codexd="codex --dangerously-bypass-approvals-and-sandbox"' >> ~/.bashrc

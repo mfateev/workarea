@@ -199,6 +199,7 @@ This is a sandboxed Linux container for the **<task-name>** task.
 - **User:** dev (sudo access)
 - **Shell:** bash (vi mode)
 - **SSH:** Agent forwarded from host — `ssh -T git@github.com` to verify
+- **Aliases:** `clauded` (dangerous mode), `codexd` (dangerous mode)
 
 ## Repositories
 
@@ -321,7 +322,8 @@ Or create a new task: /new-container-for-task <PR-URL-or-description>
 - **User**: `dev` (uid 1000, sudo access)
 - **Home**: `/home/dev`
 - **Shell**: bash (vi mode, persistent history - baked into image)
-- **Tools**: git, gh, node 22, claude-code, jq, curl
+- **Tools**: git, gh, node 22, claude-code, codex, jq, curl
+- **Aliases**: `clauded` (claude --dangerously-skip-permissions), `codexd` (codex --dangerously-bypass-approvals-and-sandbox)
 - **SSH**: Agent forwarded from host via `--ssh`
 - **GitHub**: SSH host key pre-installed in image
 
