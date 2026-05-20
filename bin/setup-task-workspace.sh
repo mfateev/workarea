@@ -191,6 +191,51 @@ get_repo_name() {
     basename "$url" .git
 }
 
+# Extract <owner>/<repo> from a GitHub URL (ssh or https, with or without .git)
+url_to_owner_repo() {
+    local url="$1"
+    echo "$url" | sed -E 's#^(https://|git@)github\.com[:/]##; s#\.git$##'
+}
+
+# If the given GitHub <owner>/<repo> is a fork, echo "<parent-owner>/<parent-repo>".
+# Empty output means the repo is not a fork (or gh is unavailable / network failed).
+get_upstream_for_fork() {
+    local owner_repo="$1"
+    command -v gh >/dev/null || return 0
+    gh repo view "$owner_repo" --json parent,isFork \
+        --jq 'select(.isFork) | .parent.owner.login + "/" + .parent.name' 2>/dev/null
+}
+
+# Sync a fork's default branch with upstream on GitHub via the GitHub API.
+# Exits non-zero on any failure so the caller (with set -e) halts and the user
+# is asked how to proceed. We never auto-force: divergent forks must be
+# resolved by the user (force-sync, rebase, or abandon local changes).
+sync_fork_with_upstream() {
+    local fork="$1"      # <owner>/<repo>
+    local upstream="$2"  # <owner>/<repo>
+
+    if ! command -v gh >/dev/null; then
+        echo -e "${RED}  ✗ gh CLI is required to sync fork ${fork} with ${upstream}${NC}" >&2
+        echo -e "${RED}    Install it (brew install gh) or remove the fork from task.json${NC}" >&2
+        exit 1
+    fi
+
+    echo -e "${BLUE}  Syncing fork ${fork} with upstream ${upstream}...${NC}"
+    local output
+    if output=$(gh repo sync "$fork" --source "$upstream" 2>&1); then
+        echo -e "${GREEN}  ✓ ${output}${NC}"
+        return 0
+    fi
+
+    echo -e "${RED}  ✗ Fork sync failed for ${fork} <- ${upstream}:${NC}" >&2
+    echo "$output" | sed 's/^/      /' >&2
+    echo -e "${RED}  Halting. Resolve the divergence manually, then re-run:${NC}" >&2
+    echo -e "${RED}    - To accept upstream and lose fork-only commits:${NC}" >&2
+    echo -e "${RED}        gh repo sync ${fork} --source ${upstream} --force${NC}" >&2
+    echo -e "${RED}    - To keep fork commits: rebase/merge upstream into the fork first${NC}" >&2
+    exit 1
+}
+
 # Parse PR URL to get repository and branch info
 # Returns: "repo_url|branch_name|fork_owner" or just "repo_url" if not a PR
 parse_pr_url() {
@@ -264,6 +309,17 @@ for repo_input in "${REPO_URLS[@]}"; do
 
     echo ""
     echo -e "${GREEN}Processing repository: ${REPO_NAME}${NC}"
+
+    # If the URL we're about to clone is a fork, sync it with its upstream on
+    # GitHub first — otherwise the local clone (and any branch we cut off main)
+    # starts behind upstream. Safe to call repeatedly: gh repo sync is a no-op
+    # when fork is already at parity. PR-from-fork case is handled separately
+    # below (we don't sync arbitrary contributors' forks).
+    CLONE_OWNER_REPO=$(url_to_owner_repo "$repo_url")
+    PARENT_OWNER_REPO=$(get_upstream_for_fork "$CLONE_OWNER_REPO")
+    if [ -n "$PARENT_OWNER_REPO" ]; then
+        sync_fork_with_upstream "$CLONE_OWNER_REPO" "$PARENT_OWNER_REPO"
+    fi
 
     # Clone repository if it doesn't exist
     if [ ! -d "$REPO_PATH" ]; then

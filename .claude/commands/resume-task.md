@@ -235,6 +235,28 @@ Note: You may need to add the upstream remote manually:
 - **jq required:** The resume script uses `jq` for JSON parsing
   - If missing: `brew install jq`
 - **Internet connection:** Needed to clone repositories and fetch from forks
+- **gh CLI required when task.json has `fork_url`:** Used to sync the fork with
+  upstream before cloning. If missing, install with `brew install gh`.
+
+### Fork Sync (Automatic — Hard Stop on Failure)
+
+Before cloning, if `task.json` declares both `fork_url` and `upstream_url`
+for a repository, the resume script runs
+`gh repo sync <fork> --source <upstream>` to bring the fork's default branch
+up to date with upstream **before** the clone — so the restored worktree
+starts from current code, not a stale fork.
+
+**If sync fails (e.g. fork has diverged from upstream), the script EXITS
+non-zero and halts task restoration.** The script never auto-forces.
+
+**When Claude sees the script exit with a fork sync failure:**
+1. STOP. Do not retry, do not run with `--force`, do not continue restoration.
+2. Show the user the exact `gh repo sync` error output from the script.
+3. Ask the user which option to take:
+   - **Force-sync** the fork (discards any commits on fork that aren't on upstream): re-run with `gh repo sync <fork> --source <upstream> --force`, then retry `/resume-task`.
+   - **Preserve fork commits**: have the user rebase or merge upstream into the fork manually, push, then retry `/resume-task`.
+   - **Abort** restoration.
+4. Wait for the user's choice before doing anything else.
 
 ### What Gets Restored
 - ✅ Repository clones (to `repos/`)

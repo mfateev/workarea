@@ -189,6 +189,30 @@ You can now start working:
 - **Fork Remote Management**: Adds fork remotes as needed (e.g., `<username>` remote)
 - **Task Naming**: Uses PR title to generate task name (sanitized)
 
+### Fork Sync (Automatic — Hard Stop on Failure)
+
+Before cloning, the setup script checks whether the URL being cloned is a
+fork (via `gh repo view --json parent,isFork`). If it is, it runs
+`gh repo sync <fork> --source <upstream>` to bring the fork's default branch
+up to date with upstream **before** the clone — so any new task branch is
+cut off the latest upstream code, not a stale fork.
+
+**If sync fails (e.g. fork has diverged from upstream), the script EXITS
+non-zero and halts the entire task setup.** The script never auto-forces.
+
+**When Claude sees the script exit with a fork sync failure:**
+1. STOP. Do not retry, do not run with `--force`, do not continue with task creation.
+2. Show the user the exact `gh repo sync` error output from the script.
+3. Ask the user which option to take:
+   - **Force-sync** the fork (discards any commits on fork that aren't on upstream): re-run with `gh repo sync <fork> --source <upstream> --force`, then retry `/new-task`.
+   - **Preserve fork commits**: have the user rebase or merge upstream into the fork manually, push, then retry `/new-task`.
+   - **Abort** task creation.
+4. Wait for the user's choice before doing anything else.
+
+Only forks being **cloned** are synced. Forks added as remotes for
+PR-review purposes (someone else's fork hosting the PR branch) are not
+synced.
+
 ### Repository Discovery
 - Check if `repos/` already has cloned repositories to suggest them
 - For new tasks, ask user which repositories are needed

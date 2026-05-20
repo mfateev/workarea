@@ -93,6 +93,42 @@ detect_current_workspace() {
     return 1
 }
 
+# Extract <owner>/<repo> from a GitHub URL (ssh or https, with or without .git)
+url_to_owner_repo() {
+    local url="$1"
+    echo "$url" | sed -E 's#^(https://|git@)github\.com[:/]##; s#\.git$##'
+}
+
+# Sync a fork's default branch with upstream on GitHub via the GitHub API.
+# Exits non-zero on any failure so the caller (with set -e) halts and the user
+# is asked how to proceed. We never auto-force: divergent forks must be
+# resolved by the user (force-sync, rebase, or abandon local changes).
+sync_fork_with_upstream() {
+    local fork="$1"      # <owner>/<repo>
+    local upstream="$2"  # <owner>/<repo>
+
+    if ! command -v gh >/dev/null; then
+        echo -e "${RED}  ✗ gh CLI is required to sync fork ${fork} with ${upstream}${NC}" >&2
+        echo -e "${RED}    Install it (brew install gh) or remove the fork from task.json${NC}" >&2
+        exit 1
+    fi
+
+    echo -e "${BLUE}  Syncing fork ${fork} with upstream ${upstream}...${NC}"
+    local output
+    if output=$(gh repo sync "$fork" --source "$upstream" 2>&1); then
+        echo -e "${GREEN}  ✓ ${output}${NC}"
+        return 0
+    fi
+
+    echo -e "${RED}  ✗ Fork sync failed for ${fork} <- ${upstream}:${NC}" >&2
+    echo "$output" | sed 's/^/      /' >&2
+    echo -e "${RED}  Halting. Resolve the divergence manually, then re-run:${NC}" >&2
+    echo -e "${RED}    - To accept upstream and lose fork-only commits:${NC}" >&2
+    echo -e "${RED}        gh repo sync ${fork} --source ${upstream} --force${NC}" >&2
+    echo -e "${RED}    - To keep fork commits: rebase/merge upstream into the fork first${NC}" >&2
+    exit 1
+}
+
 # =============================================================================
 # Configuration
 # =============================================================================
@@ -235,6 +271,16 @@ for ((i=0; i<$REPO_COUNT; i++)); do
     WORKTREE_PATH="${TASK_DIR}/${REPO_NAME}"
 
     echo -e "${GREEN}Processing repository: ${REPO_NAME}${NC}"
+
+    # If task.json declares both fork and upstream, sync the fork's default
+    # branch with upstream on GitHub before any clone/fetch. Otherwise the
+    # restored worktree may start behind upstream.
+    if [ "$FORK_URL" != "null" ] && [ -n "$FORK_URL" ] \
+       && [ "$UPSTREAM_URL" != "null" ] && [ -n "$UPSTREAM_URL" ]; then
+        FORK_OWNER_REPO=$(url_to_owner_repo "$FORK_URL")
+        UPSTREAM_OWNER_REPO=$(url_to_owner_repo "$UPSTREAM_URL")
+        sync_fork_with_upstream "$FORK_OWNER_REPO" "$UPSTREAM_OWNER_REPO"
+    fi
 
     # Clone repository if it doesn't exist
     if [ ! -d "$REPO_PATH" ]; then
