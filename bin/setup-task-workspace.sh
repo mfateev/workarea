@@ -375,8 +375,29 @@ for repo_input in "${REPO_URLS[@]}"; do
         # Create worktree - use absolute path to avoid path issues
         (
             cd "$REPO_PATH"
+
+            # For brand-new task branches (no PR, no custom branch) cut off
+            # origin/<default-branch> rather than the parent repo's HEAD. The
+            # parent's local main can be stale (git fetch only moves remote-
+            # tracking refs, not local branches), which would make the new
+            # task branch start behind upstream even after a successful fetch.
+            NEW_BRANCH_START_REF=()
+            if [ -z "$pr_branch" ] && [ -z "$CUSTOM_BRANCH" ]; then
+                # Prefer locally-cached origin/HEAD; fall back to asking the
+                # remote (origin/HEAD is unset when origin was added via
+                # `git remote add` rather than `git clone`).
+                DEFAULT_BRANCH=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+                if [ -z "$DEFAULT_BRANCH" ]; then
+                    DEFAULT_BRANCH=$(git ls-remote --symref origin HEAD 2>/dev/null \
+                        | awk '/^ref:/ { sub(/refs\/heads\//, "", $2); print $2; exit }')
+                fi
+                if [ -n "$DEFAULT_BRANCH" ]; then
+                    NEW_BRANCH_START_REF=("origin/$DEFAULT_BRANCH")
+                fi
+            fi
+
             # Try to create with new branch
-            if ! git worktree add "$WORKTREE_PATH" -b "$TARGET_BRANCH" 2>/dev/null; then
+            if ! git worktree add "$WORKTREE_PATH" -b "$TARGET_BRANCH" "${NEW_BRANCH_START_REF[@]}" 2>/dev/null; then
                 # Try to checkout existing branch/ref
                 if ! git worktree add "$WORKTREE_PATH" "$BRANCH_REF" 2>/dev/null; then
                     # Last resort: use HEAD
